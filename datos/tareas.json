@@ -1,0 +1,26 @@
+[
+  {
+    "asignatura": "53001593",
+    "tipo": "trabajo",
+    "titulo": "Trabajo nanoHUB (primera parte)",
+    "fecha": "2026-11-08",
+    "hora": "23:59",
+    "notas": "En Moodle aparece como «Evaluation». Trabajo de nanoHUB de la primera parte de la asignatura."
+  },
+  {
+    "asignatura": "53001596",
+    "tipo": "trabajo",
+    "titulo": "Tarea 1 - Desarrollo de código Monte Carlo",
+    "fecha": "2026-11-15",
+    "hora": "23:00",
+    "notas": ""
+  },
+  {
+    "asignatura": "53001594-S1",
+    "tipo": "ejercicios",
+    "titulo": "Exercise 1 - Thermal response and atomistic defects",
+    "fecha": "2027-01-12",
+    "hora": "23:59",
+    "notas": ""
+  }
+]

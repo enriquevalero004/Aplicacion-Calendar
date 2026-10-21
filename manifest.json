@@ -1,0 +1,14 @@
+{
+  "name": "Mi Calendario",
+  "short_name": "Calendario",
+  "description": "Organiza tus días, recibe avisos y guarda los planes en pareja con fotos.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdf7f8",
+  "theme_color": "#e8577e",
+  "lang": "es",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

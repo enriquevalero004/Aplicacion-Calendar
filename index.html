@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e8577e">
+  <title>Mi Calendario</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Mi Calendario</h1>
+    <button id="btn-notif" class="chip" type="button">🔔 Activar avisos</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="calendar" type="button">📅 Calendario</button>
+    <button class="tab" data-view="couple" type="button">💖 Nuestros planes</button>
+    <button class="tab" data-view="settings" type="button">⚙️ Ajustes</button>
+  </nav>
+
+  <main>
+    <!-- Calendario -->
+    <section id="view-calendar" class="view">
+      <div class="month-nav">
+        <button id="prev-month" class="icon-btn" type="button" aria-label="Mes anterior">‹</button>
+        <h2 id="month-label"></h2>
+        <button id="next-month" class="icon-btn" type="button" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="weekdays">
+        <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+      <div id="grid" class="grid"></div>
+
+      <div class="day-panel">
+        <div class="day-head">
+          <h3 id="day-label"></h3>
+          <button id="btn-today" class="chip" type="button">Hoy</button>
+        </div>
+        <ul id="day-events" class="events"></ul>
+      </div>
+    </section>
+
+    <!-- Planes en pareja -->
+    <section id="view-couple" class="view" hidden>
+      <p class="muted">Todos los planes que has marcado con 💖, del más reciente al más antiguo.</p>
+      <div id="couple-list" class="couple-list"></div>
+    </section>
+
+    <!-- Ajustes -->
+    <section id="view-settings" class="view" hidden>
+      <div class="card">
+        <h3>Avisos</h3>
+        <label class="row">
+          <span>Resumen del día al abrir la app por primera vez</span>
+          <input type="checkbox" id="set-summary">
+        </label>
+        <button id="btn-test-notif" class="btn" type="button">Probar notificación</button>
+        <p class="muted small">
+          Los avisos llegan mientras la app está abierta o en segundo plano. Si quieres
+          que te avise seguro aunque el móvil la cierre, usa el botón
+          <b>“Añadir a mi calendario”</b> de cada plan: se guarda en el calendario del móvil
+          con su alarma.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Copia de seguridad</h3>
+        <p class="muted small">Todo se guarda solo en este dispositivo. Haz copias de vez en cuando.</p>
+        <div class="row-btns">
+          <button id="btn-export" class="btn" type="button">Exportar</button>
+          <label class="btn">Importar<input id="inp-import" type="file" accept="application/json" hidden></label>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button id="fab" class="fab" type="button" aria-label="Nuevo plan">＋</button>
+
+  <!-- Formulario de plan -->
+  <dialog id="dlg-event">
+    <form id="form-event" method="dialog">
+      <h3 id="form-title">Nuevo plan</h3>
+      <label>Título
+        <input name="title" required maxlength="120" placeholder="Cena, médico, gimnasio…">
+      </label>
+      <div class="two">
+        <label>Día <input name="date" type="date" required></label>
+        <label>Hora <input name="time" type="time"></label>
+      </div>
+      <label>Avisarme
+        <select name="remind">
+          <option value="-1">Sin aviso</option>
+          <option value="0">A la hora</option>
+          <option value="10">10 min antes</option>
+          <option value="30" selected>30 min antes</option>
+          <option value="60">1 hora antes</option>
+          <option value="120">2 horas antes</option>
+          <option value="1440">1 día antes</option>
+        </select>
+      </label>
+      <label>Descripción
+        <textarea name="description" rows="3" placeholder="Detalles, dirección, qué llevar…"></textarea>
+      </label>
+
+      <label class="couple-toggle">
+        <input type="checkbox" name="couple">
+        <span>💖 Plan con mi novia</span>
+      </label>
+
+      <div id="photos-block">
+        <div class="photos-head">
+          <span>Fotos</span>
+          <label class="chip">📷 Añadir fotos<input id="inp-photos" type="file" accept="image/*" multiple hidden></label>
+        </div>
+        <div id="photo-preview" class="photo-grid"></div>
+      </div>
+
+      <div class="form-actions">
+        <button id="btn-delete" class="btn danger" type="button" hidden>Borrar</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" value="cancel" formnovalidate type="submit">Cancelar</button>
+        <button class="btn primary" value="save" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Visor de plan -->
+  <dialog id="dlg-view">
+    <div class="viewer">
+      <div id="viewer-body"></div>
+      <div class="form-actions">
+        <button id="btn-ics" class="btn" type="button">📲 Añadir a mi calendario</button>
+        <span class="spacer"></span>
+        <button id="btn-edit" class="btn" type="button">Editar</button>
+        <button id="btn-close-view" class="btn primary" type="button">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,15 +1,15 @@
-// Mi Calendario: planes del día, avisos y recuerdos de planes en pareja.
+// Mi Calendario: planes del día, avisos y planes destacados con fotos.
 
 const $ = (sel) => document.querySelector(sel);
 const DEFAULT_TIME = '09:00'; // hora usada para avisar de planes sin hora
 const SETTINGS_KEY = 'mi-calendario-ajustes';
 
 const CATEGORIES = {
-  general: { emoji: '📅', label: 'General' },
-  estudios: { emoji: '📚', label: 'Carrera y estudios' },
-  amigos: { emoji: '🎉', label: 'Amigos' },
-  gym: { emoji: '💪', label: 'Gym' },
-  pareja: { emoji: '💖', label: 'Plan con mi novia' },
+  general: { label: 'General' },
+  estudios: { label: 'Estudios' },
+  amigos: { label: 'Amigos' },
+  gym: { label: 'Gym' },
+  pareja: { label: 'Pareja' },
 };
 
 // Los planes antiguos solo tenían la marca "couple".
@@ -17,16 +17,23 @@ function categoryOf(ev) {
   return CATEGORIES[ev.category] ? ev.category : ev.couple ? 'pareja' : 'general';
 }
 
-// Emoji delante del título (los planes generales van sin emoji).
+// Los planes de pareja de versiones anteriores salían en su propio álbum:
+// se conservan como destacados.
+function isHighlighted(ev) {
+  return ev.highlight ?? !!ev.couple;
+}
+
+// Nombre del tipo para textos ("Gym · ..."); los generales no lo llevan.
 function prefix(ev) {
   const cat = categoryOf(ev);
-  return cat === 'general' ? '' : CATEGORIES[cat].emoji + ' ';
+  return cat === 'general' ? '' : CATEGORIES[cat].label + ' · ';
 }
 
 const state = {
   events: [],
   month: startOfMonth(new Date()),
   selected: toISODate(new Date()),
+  highlightFilter: 'all', // tipo mostrado en Destacados
   editing: null,      // evento que se está editando (o null si es nuevo)
   viewing: null,      // evento abierto en el visor
   draftPhotos: [],    // fotos del formulario abierto
@@ -169,12 +176,12 @@ function renderCalendar() {
     const iso = toISODate(d);
     const dayEvents = eventsOn(iso);
     const cats = new Set(dayEvents.map(categoryOf));
-    const special = Object.keys(CATEGORIES).filter((c) => c !== 'general' && cats.has(c));
 
+    // Un punto del color de cada tipo de plan del día (máx. 4).
     const marks = el('span', { className: 'marks' });
-    // Un emoji por tipo de plan del día (máx. 3); los generales se ven como un punto.
-    for (const c of special.slice(0, 3)) marks.append(CATEGORIES[c].emoji);
-    if (cats.has('general') && special.length < 3) marks.append(el('span', { className: 'dot' }));
+    for (const c of Object.keys(CATEGORIES).filter((k) => cats.has(k)).slice(0, 4)) {
+      marks.append(el('span', { className: `dot cat-${c}` }));
+    }
 
     const btn = el('button', { type: 'button', className: 'day' }, [
       el('span', { className: 'num', textContent: d.getDate() }),
@@ -198,9 +205,15 @@ function eventItem(ev) {
   const li = el('li', { className: `event cat-${categoryOf(ev)}` }, [
     el('span', { className: 'time', textContent: ev.time || 'Todo el día' }),
     el('div', { className: 'info' }, [
-      el('div', { className: 'title', textContent: prefix(ev) + ev.title }),
+      el('div', { className: 'title' }, [
+        el('span', { className: 'name', textContent: ev.title }),
+        isHighlighted(ev) ? el('span', { className: 'tag', textContent: 'Destacado' }) : null,
+      ]),
       ev.description ? el('div', { className: 'desc', textContent: ev.description }) : null,
-      ev.repeat ? el('div', { className: 'repeat', textContent: '🔁 ' + describeRepeat(ev) }) : null,
+      el('div', { className: 'repeat', textContent: [
+        categoryOf(ev) !== 'general' ? CATEGORIES[categoryOf(ev)].label : '',
+        ev.repeat ? describeRepeat(ev) : '',
+      ].filter(Boolean).join(' · ') }),
     ]),
     ev.photos?.length ? el('img', { src: ev.photos[0], alt: '' }) : null,
   ]);
@@ -215,31 +228,48 @@ function renderDay() {
   list.replaceChildren(
     ...(items.length
       ? items.map(eventItem)
-      : [el('li', { className: 'empty', textContent: 'Nada planeado. Pulsa ＋ para añadir algo.' })])
+      : [el('li', { className: 'empty', textContent: 'Nada planeado. Pulsa + para añadir algo.' })])
   );
 }
 
-function renderCouple() {
-  const box = $('#couple-list');
-  const plans = sortEvents(state.events.filter((e) => categoryOf(e) === 'pareja')).reverse();
+function renderFilters() {
+  const options = [['all', 'Todos'], ...Object.entries(CATEGORIES).map(([k, c]) => [k, c.label])];
+  $('#highlight-filters').replaceChildren(...options.map(([key, label]) => {
+    const chip = el('button', { type: 'button', className: 'chip' + (state.highlightFilter === key ? ' on' : ''), textContent: label });
+    chip.addEventListener('click', () => {
+      state.highlightFilter = key;
+      renderHighlights();
+    });
+    return chip;
+  }));
+}
+
+function renderHighlights() {
+  renderFilters();
+  const box = $('#highlight-list');
+  const plans = sortEvents(state.events.filter((e) => isHighlighted(e)
+    && (state.highlightFilter === 'all' || categoryOf(e) === state.highlightFilter))).reverse();
   if (!plans.length) {
     box.replaceChildren(el('div', {
       className: 'empty',
-      textContent: 'Todavía no hay planes en pareja. Al crear un plan, elige “💖 Con mi novia”.',
+      textContent: state.highlightFilter === 'all'
+        ? 'Aún no hay planes destacados. Al crear o editar un plan, activa “Destacar este plan”.'
+        : 'No hay planes destacados de este tipo.',
     }));
     return;
   }
   box.replaceChildren(...plans.map((ev) => {
-    const cover = ev.photos?.length
-      ? el('img', { className: 'cover', src: ev.photos[0], alt: '' })
-      : el('div', { className: 'cover placeholder', textContent: '💖' });
-    const card = el('article', { className: 'memory' }, [
-      cover,
+    const cat = categoryOf(ev);
+    const card = el('article', { className: `highlight cat-${cat}` }, [
+      ev.photos?.length ? el('img', { className: 'cover', src: ev.photos[0], alt: '' }) : null,
       el('div', { className: 'body' }, [
-        el('div', { className: 'date', textContent: fmtDayFull.format(parseISODate(ev.date)) + (ev.time ? ` · ${ev.time}` : '') }),
+        el('div', { className: 'date', textContent: [
+          fmtDayFull.format(parseISODate(ev.date)) + (ev.time ? ` · ${ev.time}` : ''),
+          cat !== 'general' ? CATEGORIES[cat].label : '',
+        ].filter(Boolean).join(' · ') }),
         el('h4', { textContent: ev.title }),
         ev.description ? el('p', { textContent: ev.description }) : null,
-        ev.photos?.length > 1 ? el('p', { textContent: `📷 ${ev.photos.length} fotos` }) : null,
+        ev.photos?.length > 1 ? el('p', { className: 'count', textContent: `${ev.photos.length} fotos` }) : null,
       ]),
     ]);
     card.addEventListener('click', () => openViewer(ev));
@@ -249,7 +279,7 @@ function renderCouple() {
 
 function renderAll() {
   renderCalendar();
-  renderCouple();
+  renderHighlights();
 }
 
 // ---------- Visor ----------
@@ -262,18 +292,21 @@ function openViewer(ev) {
     : ev.remind >= 60 ? `Aviso ${ev.remind / 60} h antes`
     : `Aviso ${ev.remind} min antes`;
 
-  $('#viewer-body').replaceChildren(
+  $('#viewer-body').replaceChildren(...[
     el('h3', { textContent: ev.title }),
     el('div', { className: 'meta', textContent: `${fmtDayFull.format(parseISODate(ev.date))} · ${ev.time || 'todo el día'} · ${remindText}` }),
-    ev.repeat ? el('div', { className: 'meta', textContent: '🔁 ' + describeRepeat(ev) }) : null,
-    categoryOf(ev) !== 'general'
-      ? el('span', { className: 'badge', textContent: `${CATEGORIES[categoryOf(ev)].emoji} ${CATEGORIES[categoryOf(ev)].label}` })
-      : null,
+    ev.repeat ? el('div', { className: 'meta', textContent: describeRepeat(ev) }) : null,
+    el('div', { className: 'badges' }, [
+      categoryOf(ev) !== 'general'
+        ? el('span', { className: `badge cat-${categoryOf(ev)}`, textContent: CATEGORIES[categoryOf(ev)].label })
+        : null,
+      isHighlighted(ev) ? el('span', { className: 'badge', textContent: 'Destacado' }) : null,
+    ]),
     ev.description ? el('p', { className: 'text', textContent: ev.description }) : null,
     ev.photos?.length
       ? el('div', { className: 'gallery' }, ev.photos.map((src) => el('img', { src, alt: '' })))
       : null,
-  );
+  ].filter(Boolean));
   $('#btn-skip').hidden = !ev.repeat;
   $('#dlg-view').showModal();
 }
@@ -291,6 +324,7 @@ function openForm(ev = null) {
   f.remind.value = String(ev?.remind ?? 30);
   f.description.value = ev?.description || '';
   f.category.value = ev ? categoryOf(ev) : 'general';
+  f.highlight.checked = ev ? isHighlighted(ev) : false;
   const days = ev?.repeat?.days || [weekdayOf(f.date.value)];
   f.repeat.value = !ev?.repeat ? 'none' : days.length === 7 ? 'daily' : 'weekly';
   for (const box of f.days) box.checked = days.includes(Number(box.value));
@@ -360,7 +394,7 @@ async function saveForm() {
     remind: Number(f.remind.value),
     description: f.description.value.trim(),
     category: f.category.value,
-    couple: f.category.value === 'pareja',
+    highlight: f.highlight.checked,
     photos: state.draftPhotos,
     repeat: readRepeat(f),
     createdAt: prev?.createdAt || Date.now(),
@@ -403,12 +437,12 @@ async function notify(title, body, tag) {
 function updateNotifButton() {
   const btn = $('#btn-notif');
   if (!('Notification' in window)) {
-    btn.textContent = '🔕 Sin avisos';
+    btn.textContent = 'Sin avisos';
     btn.disabled = true;
     return;
   }
   const on = Notification.permission === 'granted';
-  btn.textContent = on ? '🔔 Avisos activados' : Notification.permission === 'denied' ? '🔕 Avisos bloqueados' : '🔔 Activar avisos';
+  btn.textContent = on ? 'Avisos activados' : Notification.permission === 'denied' ? 'Avisos bloqueados' : 'Activar avisos';
   btn.classList.toggle('on', on);
 }
 
@@ -429,6 +463,7 @@ async function requestNotifications() {
 function describeWhen(ev, now) {
   const mins = Math.round((eventStart(ev) - now) / 60000);
   if (!ev.time) return 'Hoy';
+  if (mins < -1) return `Empezó a las ${ev.time}`;
   if (mins <= 0) return `Ahora (${ev.time})`;
   if (mins < 60) return `En ${mins} min (${ev.time})`;
   if (mins < 1440) return `A las ${ev.time}`;
@@ -455,8 +490,8 @@ async function checkReminders() {
       // Si el plan ya pasó hace rato, no molestamos con un aviso viejo.
       const tooLate = now - start > 60 * 60000;
       const sent = !tooLate && await notify(
-        CATEGORIES[categoryOf(ev)].emoji + ' ' + ev.title,
-        describeWhen(ev, now) + (ev.description ? ` · ${ev.description}` : ''),
+        ev.title,
+        prefix(ev) + describeWhen(ev, now) + (ev.description ? ` · ${ev.description}` : ''),
         `${ev.id}-${date}`,
       );
       if (sent || tooLate) {
@@ -474,7 +509,7 @@ async function dailySummary() {
   if (!settings.summary || settings.lastSummary === today) return;
   const items = eventsOn(today);
   if (!items.length) return;
-  const body = items.map((e) => `${e.time || '·'} ${prefix(e)}${e.title}`).join('\n');
+  const body = items.map((e) => `${e.time || 'Todo el día'} · ${e.title}`).join('\n');
   const title = items.length === 1 ? 'Hoy tienes 1 plan' : `Hoy tienes ${items.length} planes`;
   if (await notify(title, body, 'resumen-' + today)) {
     settings.lastSummary = today;
@@ -516,7 +551,7 @@ function downloadICS(series) {
     next.setDate(next.getDate() + 1);
     lines.push(`DTSTART;VALUE=DATE:${ev.date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${toISODate(next).replace(/-/g, '')}`);
   }
-  lines.push(`SUMMARY:${icsEscape(prefix(ev) + ev.title)}`);
+  lines.push(`SUMMARY:${icsEscape(ev.title)}`);
   if (ev.repeat) {
     const until = ev.repeat.until ? `;UNTIL=${ev.repeat.until.replace(/-/g, '')}T235959` : '';
     lines.push(`RRULE:FREQ=WEEKLY;BYDAY=${ev.repeat.days.map((d) => ICS_DAYS[d]).join(',')}${until}`);
@@ -575,7 +610,7 @@ function showView(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => { v.hidden = v.id !== `view-${name}`; });
   $('#fab').hidden = name === 'settings';
-  if (name === 'couple') renderCouple();
+  if (name === 'highlights') renderHighlights();
 }
 
 function bindUI() {
@@ -655,7 +690,7 @@ function bindUI() {
 
   $('#btn-test-notif').addEventListener('click', async () => {
     if (Notification.permission !== 'granted') await requestNotifications();
-    if (!(await notify('📅 Mi Calendario', 'Así te llegarán los avisos de tus planes.', 'prueba'))) {
+    if (!(await notify('Mi Calendario', 'Así te llegarán los avisos de tus planes.', 'prueba'))) {
       toast('Primero activa los avisos');
     }
   });

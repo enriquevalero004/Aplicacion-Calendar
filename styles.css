@@ -11,7 +11,7 @@
   --c-estudios: #c58a1c;
   --c-amigos: #2e9a6a;
   --c-gym: #d4622b;
-  --c-pareja: #c0587a;
+  --c-pareja: #7b68b5;
   --danger: #c93a3a;
   --radius: 14px;
   color-scheme: light;
@@ -31,7 +31,7 @@
     --c-estudios: #e0ac4a;
     --c-amigos: #5cc597;
     --c-gym: #f08a57;
-    --c-pareja: #e07f9f;
+    --c-pareja: #a897e0;
     --danger: #ff6b6b;
     color-scheme: dark;
   }
@@ -105,7 +105,11 @@ main { max-width: 640px; margin: 0 auto; padding: 0 16px; }
   display: grid; place-items: center;
 }
 .day .marks { display: flex; align-items: center; gap: 1px; margin-top: auto; font-size: .6rem; line-height: 1; white-space: nowrap; }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); display: inline-block; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); display: inline-block; flex: none; }
+.dot.cat-estudios { background: var(--c-estudios); }
+.dot.cat-amigos { background: var(--c-amigos); }
+.dot.cat-gym { background: var(--c-gym); }
+.dot.cat-pareja { background: var(--c-pareja); }
 
 /* Panel del día */
 .day-panel { margin-top: 18px; }
@@ -124,23 +128,36 @@ main { max-width: 640px; margin: 0 auto; padding: 0 16px; }
 .event.cat-pareja { border-left-color: var(--c-pareja); }
 .event .time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 48px; }
 .event .info { flex: 1; min-width: 0; }
-.event .title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event .title { font-weight: 600; display: flex; align-items: center; min-width: 0; }
+.event .title .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event .desc { font-size: .85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
 .empty { text-align: center; color: var(--muted); padding: 18px; border: 1px dashed var(--line); border-radius: var(--radius); }
 
-/* Nuestros planes */
-.couple-list { display: grid; gap: 14px; }
-.memory {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  overflow: hidden; cursor: pointer;
+.event .tag, .badge {
+  display: inline-block; border: 1px solid var(--line); color: var(--muted); border-radius: 6px;
+  padding: 1px 6px; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
 }
-.memory .cover { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
-.memory .cover.placeholder { display: grid; place-items: center; font-size: 2.5rem; background: var(--accent-soft); }
-.memory .body { padding: 12px 14px; }
-.memory .date { font-size: .8rem; color: var(--accent); font-weight: 600; }
-.memory h4 { margin: 4px 0; font-size: 1.05rem; }
-.memory p { margin: 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; }
+.event .tag { margin-left: 8px; flex: none; }
+
+/* Destacados */
+.filters { display: flex; gap: 6px; overflow-x: auto; margin: 10px 0 14px; padding-bottom: 2px; }
+.filters .chip { white-space: nowrap; }
+.highlight-list { display: grid; gap: 12px; }
+.highlight {
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--blue);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+}
+.highlight.cat-estudios { border-top-color: var(--c-estudios); }
+.highlight.cat-amigos { border-top-color: var(--c-amigos); }
+.highlight.cat-gym { border-top-color: var(--c-gym); }
+.highlight.cat-pareja { border-top-color: var(--c-pareja); }
+.highlight .cover { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.highlight .body { padding: 12px 14px; }
+.highlight .date { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.highlight h4 { margin: 4px 0; font-size: 1.05rem; }
+.highlight p { margin: 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; }
+.highlight .count { margin-top: 6px; font-size: .8rem; }
 
 /* Ajustes */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
@@ -177,7 +194,7 @@ textarea { resize: vertical; }
 .cat { display: block; cursor: pointer; }
 .cat input { position: absolute; opacity: 0; pointer-events: none; }
 .cat span {
-  display: inline-block; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px;
   color: var(--text); font-size: .9rem;
 }
 .cat input:checked + span { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
@@ -191,6 +208,22 @@ textarea { resize: vertical; }
   position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%;
   border: none; background: rgba(0, 0, 0, .6); color: #fff; cursor: pointer; line-height: 1;
 }
+
+.switch { display: flex; align-items: center; gap: 12px; cursor: pointer; color: var(--text); }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch .track {
+  flex: none; width: 44px; height: 26px; border-radius: 999px; background: var(--line); position: relative;
+  transition: background .15s;
+}
+.switch .track::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .15s;
+}
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch-text { display: grid; gap: 2px; }
+.switch-text small { color: var(--muted); }
 
 .repeat-block { display: grid; gap: 10px; }
 .weekday-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -209,7 +242,8 @@ textarea { resize: vertical; }
 
 .viewer h3 { margin: 0; }
 .viewer .meta { color: var(--muted); font-size: .9rem; }
-.viewer .badge { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 600; margin-top: 6px; }
+.viewer .badges { display: flex; gap: 6px; margin-top: 8px; }
+.viewer .badges:empty { display: none; }
 .viewer .text { white-space: pre-wrap; margin: 10px 0 0; }
 .viewer .gallery { display: grid; gap: 8px; margin-top: 12px; }
 .viewer .gallery img { width: 100%; border-radius: 12px; display: block; }

@@ -1,7 +1,7 @@
 {
   "name": "Mi Calendario",
   "short_name": "Calendario",
-  "description": "Organiza tus días, recibe avisos y guarda los planes en pareja con fotos.",
+  "description": "Organiza tus días, recibe avisos y destaca los planes que no quieres olvidar.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

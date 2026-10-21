@@ -5,5 +5,12 @@
   <rect x="96" y="168" width="320" height="36" fill="#c9d4e3"/>
   <rect x="160" y="92" width="28" height="72" rx="14" fill="#fff"/>
   <rect x="324" y="92" width="28" height="72" rx="14" fill="#fff"/>
-  <path d="M256 368c-58-38-86-68-86-100 0-24 18-42 42-42 18 0 34 10 44 26 10-16 26-26 44-26 24 0 42 18 42 42 0 32-28 62-86 100z" fill="#2c4363"/>
+  <g fill="#c9d4e3">
+    <rect x="140" y="240" width="56" height="44" rx="10"/>
+    <rect x="228" y="240" width="56" height="44" rx="10"/>
+    <rect x="140" y="316" width="56" height="44" rx="10"/>
+    <rect x="228" y="316" width="56" height="44" rx="10"/>
+    <rect x="316" y="316" width="56" height="44" rx="10"/>
+  </g>
+  <rect x="316" y="240" width="56" height="44" rx="10" fill="#2c4363"/>
 </svg>

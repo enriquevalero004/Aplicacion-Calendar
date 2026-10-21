@@ -13,13 +13,13 @@
 <body>
   <header class="topbar">
     <h1>Mi Calendario</h1>
-    <button id="btn-notif" class="chip" type="button">🔔 Activar avisos</button>
+    <button id="btn-notif" class="chip" type="button">Activar avisos</button>
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-view="calendar" type="button">📅 Calendario</button>
-    <button class="tab" data-view="couple" type="button">💖 Nuestros planes</button>
-    <button class="tab" data-view="settings" type="button">⚙️ Ajustes</button>
+    <button class="tab active" data-view="calendar" type="button">Calendario</button>
+    <button class="tab" data-view="highlights" type="button">Destacados</button>
+    <button class="tab" data-view="settings" type="button">Ajustes</button>
   </nav>
 
   <main>
@@ -44,10 +44,11 @@
       </div>
     </section>
 
-    <!-- Planes en pareja -->
-    <section id="view-couple" class="view" hidden>
-      <p class="muted">Todos los planes que has marcado con 💖, del más reciente al más antiguo.</p>
-      <div id="couple-list" class="couple-list"></div>
+    <!-- Planes destacados -->
+    <section id="view-highlights" class="view" hidden>
+      <p class="muted small">Los planes que has destacado, del más reciente al más antiguo.</p>
+      <div id="highlight-filters" class="filters"></div>
+      <div id="highlight-list" class="highlight-list"></div>
     </section>
 
     <!-- Ajustes -->
@@ -62,7 +63,7 @@
         <p class="muted small">
           Los avisos llegan mientras la app está abierta o en segundo plano. Si quieres
           que te avise seguro aunque el móvil la cierre, usa el botón
-          <b>“Añadir a mi calendario”</b> de cada plan: se guarda en el calendario del móvil
+          <b>“Añadir al calendario del móvil”</b> de cada plan: se guarda en el calendario del móvil
           con su alarma.
         </p>
       </div>
@@ -77,7 +78,7 @@
     </section>
   </main>
 
-  <button id="fab" class="fab" type="button" aria-label="Nuevo plan">＋</button>
+  <button id="fab" class="fab" type="button" aria-label="Nuevo plan">+</button>
 
   <!-- Formulario de plan -->
   <dialog id="dlg-event">
@@ -126,17 +127,26 @@
 
       <fieldset class="categories">
         <legend>Tipo de plan</legend>
-        <label class="cat"><input type="radio" name="category" value="general" checked><span>📅 General</span></label>
-        <label class="cat"><input type="radio" name="category" value="estudios"><span>📚 Carrera y estudios</span></label>
-        <label class="cat"><input type="radio" name="category" value="amigos"><span>🎉 Amigos</span></label>
-        <label class="cat"><input type="radio" name="category" value="gym"><span>💪 Gym</span></label>
-        <label class="cat"><input type="radio" name="category" value="pareja"><span>💖 Con mi novia</span></label>
+        <label class="cat"><input type="radio" name="category" value="general" checked><span><i class="dot cat-general"></i>General</span></label>
+        <label class="cat"><input type="radio" name="category" value="estudios"><span><i class="dot cat-estudios"></i>Estudios</span></label>
+        <label class="cat"><input type="radio" name="category" value="amigos"><span><i class="dot cat-amigos"></i>Amigos</span></label>
+        <label class="cat"><input type="radio" name="category" value="gym"><span><i class="dot cat-gym"></i>Gym</span></label>
+        <label class="cat"><input type="radio" name="category" value="pareja"><span><i class="dot cat-pareja"></i>Pareja</span></label>
       </fieldset>
+
+      <label class="switch">
+        <input type="checkbox" name="highlight">
+        <span class="track"></span>
+        <span class="switch-text">
+          <b>Destacar este plan</b>
+          <small>Aparecerá en Destacados con sus fotos y descripción</small>
+        </span>
+      </label>
 
       <div id="photos-block">
         <div class="photos-head">
           <span>Fotos</span>
-          <label class="chip">📷 Añadir fotos<input id="inp-photos" type="file" accept="image/*" multiple hidden></label>
+          <label class="chip">Añadir fotos<input id="inp-photos" type="file" accept="image/*" multiple hidden></label>
         </div>
         <div id="photo-preview" class="photo-grid"></div>
       </div>
@@ -155,7 +165,7 @@
     <div class="viewer">
       <div id="viewer-body"></div>
       <div class="form-actions">
-        <button id="btn-ics" class="btn" type="button">📲 Añadir a mi calendario</button>
+        <button id="btn-ics" class="btn" type="button">Añadir al calendario del móvil</button>
         <button id="btn-skip" class="btn" type="button" hidden>Saltar este día</button>
         <span class="spacer"></span>
         <button id="btn-edit" class="btn" type="button">Editar</button>

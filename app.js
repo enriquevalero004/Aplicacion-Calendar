@@ -514,14 +514,22 @@ function renderAgenda() {
     ]));
   }
   const more = el('button', { type: 'button', className: 'btn agenda-more', textContent: 'Mostrar más' });
-  more.addEventListener('click', () => {
+  const loadMore = () => {
     const top = list.scrollTop;
     state.agendaDays = span + 60;
     renderAgenda();
     $('.agenda').scrollTop = top;
-  });
+  };
+  more.addEventListener('click', loadMore);
   list.append(more);
   $('#cal').replaceChildren(list);
+  // Al llegar al final de la lista se cargan más días solos (hasta el final del curso y algo más).
+  if ('IntersectionObserver' in window && span < 400) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) { observer.disconnect(); loadMore(); }
+    }, { root: list, rootMargin: '400px' });
+    observer.observe(more);
+  }
 }
 
 // ---------- Fichas de detalle ----------
@@ -1618,8 +1626,12 @@ async function init() {
   history.replaceState({ screen: 'calendar' }, '');
   bindUI();
   if ('serviceWorker' in navigator) {
+    // Cuando se instala una versión nueva de la app, se recarga sola para usarla ya.
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+    }
     try {
-      await navigator.serviceWorker.register('sw.js');
+      await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
       swReg = await navigator.serviceWorker.ready;
     } catch { /* p. ej. abierto como archivo local */ }
   }

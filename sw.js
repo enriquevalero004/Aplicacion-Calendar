@@ -1,5 +1,5 @@
 // Service worker: permite instalar la app, usarla sin conexión y mostrar notificaciones.
-const CACHE = 'mi-calendario-v10';
+const CACHE = 'mi-calendario-v11';
 const FILES = ['./', 'index.html', 'styles.css', 'db.js', 'data.js', 'core.js', 'app.js', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -15,10 +15,11 @@ self.addEventListener('activate', (e) => {
 });
 
 // Primero la red (para recibir actualizaciones); si no hay conexión, la caché.
+// "no-cache" obliga a preguntar al servidor, así no se mezclan archivos de versiones distintas.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));

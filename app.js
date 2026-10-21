@@ -633,25 +633,54 @@ function taskWhen(t) {
   return `${fmtDayFull.format(t.date)}${time}`;
 }
 
+function gradeText(t) {
+  if (!t.grade) return '';
+  const v = gradeValue(t);
+  return `Nota: ${t.grade}${v == null ? '' : v >= 5 ? ' · Aprobado' : ' · Suspenso'}`;
+}
+
 function openTaskSheet(t) {
   const subject = subjectOf(t);
+  const passed = isSuperseded(t) ? passedExam(t.subjectId) : null;
+  const freed = freedParts(t);
   showSheet({
     color: taskColor(t),
     title: taskFullTitle(t),
     lines: [
       taskFullTitle(t).includes(subject?.name) ? '' : subject?.name,
+      isExam(t) && t.exam ? `Convocatoria: ${EXAM_KINDS[t.exam]}` : '',
       `${taskWhen(t)} · ${t.done ? 'Hecha' : relativeDay(t.date)}`,
       t.place ? `Lugar: ${t.place}` : '',
-      t.done ? '' : remindText(t.remind),
-      t.grade ? `Nota: ${t.grade}` : '',
+      passed ? `No hace falta: aprobaste en «${taskLabel(passed)}» con ${passed.grade}` : '',
+      ...freed.map((p) => `Parte liberada: aprobaste «${taskLabel(p)}» con ${p.grade}`),
+      t.done || passed ? '' : remindText(t.remind),
+      gradeText(t),
     ],
     text: t.notes,
     actions: [
+      { label: t.grade ? 'Cambiar nota' : 'Poner nota', run: () => askGrade(t) },
       { label: t.done ? 'Marcar pendiente' : 'Marcar como hecha', run: () => toggleTask(t) },
       { label: 'Editar', run: () => openTaskForm(t) },
       { label: 'Al calendario del móvil', run: () => downloadICS(taskToICS(t)) },
     ],
   });
+}
+
+async function askGrade(t) {
+  const value = prompt(`Nota de «${taskFullTitle(t)}» (p. ej. 7,5 o Apto). Déjalo vacío para quitarla.`, t.grade || '');
+  if (value === null) return;
+  const before = { grade: t.grade, done: t.done };
+  t.grade = value.trim();
+  if (t.grade) t.done = true;
+  await DB.tasks.put(t);
+  renderScreen();
+  const undo = { label: 'Deshacer', run: async () => { Object.assign(t, before); await DB.tasks.put(t); renderScreen(); } };
+  if (!t.grade) return toast('Nota quitada', undo);
+  if (!isPassed(t)) return toast(`Nota guardada: ${t.grade}`, undo);
+  if (isExam(t) && t.exam === 'parcial') return toast(`Aprobado con ${t.grade}: parte liberada para el final`, undo);
+  const skipped = state.tasks.filter((x) => x.subjectId === t.subjectId && isSuperseded(x)).length;
+  const rest = skipped === 1 ? 'ya no sale el otro examen' : `ya no salen los otros ${skipped} exámenes`;
+  toast(skipped ? `Aprobado con ${t.grade}: ${rest}` : `Aprobado con ${t.grade}`, undo);
 }
 
 async function toggleTask(t) {
@@ -672,11 +701,11 @@ function taskRow(t, { showSubject = true } = {}) {
   const row = el('div', { className: 'task-row' + (t.done ? ' done' : ''), style: { '--c': taskColor(t) } }, [
     check,
     el('div', { className: 'task-info' }, [
-      el('div', { className: 'task-title', textContent: t.title || subject?.name || TASK_TYPES[t.type]?.label || '' }),
+      el('div', { className: 'task-title', textContent: showSubject ? taskShortTitle(t) : t.title || TASK_TYPES[t.type]?.label || '' }),
       el('div', { className: 'task-sub' }, [
-        el('span', { className: `type-tag ${t.type}`, textContent: TASK_TYPES[t.type]?.label || 'Entrega' }),
+        el('span', { className: `type-tag ${t.type}`, textContent: t.exam === 'parcial' ? 'Parcial' : TASK_TYPES[t.type]?.label || 'Entrega' }),
         showSubject && subject ? el('span', { className: 'dot', style: { background: subject.color } }) : null,
-        [showSubject ? subject?.name : null, t.grade ? `Nota: ${t.grade}` : null].filter(Boolean).join(' · '),
+        [showSubject ? subject?.name : null, t.grade ? `Nota: ${t.grade}` : null, freedParts(t).length ? 'Parte liberada' : null].filter(Boolean).join(' · '),
       ]),
     ]),
     el('div', { className: 'task-when' + (!t.done && diff < 0 ? ' overdue' : !t.done && diff <= 2 ? ' soon' : '') }, [
@@ -707,8 +736,9 @@ function renderTasks() {
 
   const today = todayISO();
   const list = state.tasks.filter((t) => f.subject === 'all' || t.subjectId === f.subject).sort(taskSort);
-  const pending = list.filter((t) => !t.done);
+  const pending = list.filter((t) => !t.done && !isSuperseded(t));
   const done = list.filter((t) => t.done).reverse();
+  const notNeeded = list.filter((t) => !t.done && isSuperseded(t));
   const out = [];
   const group = (title, items) => {
     if (!items.length) return;
@@ -719,9 +749,16 @@ function renderTasks() {
     group('Atrasadas', pending.filter((t) => t.date < today));
     group('Próximos 7 días', pending.filter((t) => t.date >= today && daysBetween(today, t.date) <= 7));
     group('Este mes', pending.filter((t) => daysBetween(today, t.date) > 7 && daysBetween(today, t.date) <= 31));
-    group('Más adelante', pending.filter((t) => daysBetween(today, t.date) > 31));
+    // Lo que queda a más de un mes, agrupado por meses
+    const later = pending.filter((t) => daysBetween(today, t.date) > 31);
+    for (const month of [...new Set(later.map((t) => t.date.slice(0, 7)))]) {
+      group(fmtMonthYear.format(`${month}-01`), later.filter((t) => t.date.startsWith(month)));
+    }
   }
-  if (f.status !== 'pending') group('Hechas', done);
+  if (f.status !== 'pending') {
+    group('Hechas', done);
+    group('Ya no hacen falta (asignatura aprobada)', notNeeded);
+  }
   if (!out.length) {
     out.push(el('div', {
       className: 'empty',
@@ -748,11 +785,12 @@ function renderSubjects() {
     if (!subs.length) continue;
     out.push(el('div', { className: 'section-title' }, [`${sem}.º cuatrimestre`, sem === current ? el('span', { className: 'now-tag', textContent: 'Ahora' }) : null]));
     for (const s of subs) {
-      const pending = state.tasks.filter((t) => t.subjectId === s.id && !t.done).sort(taskSort);
+      const pending = state.tasks.filter((t) => t.subjectId === s.id && !t.done && !isSuperseded(t)).sort(taskSort);
+      const passed = passedExam(s.id);
       const card = el('div', { className: 'subject-card' }, [
         el('span', { className: 'bar', style: { background: s.color } }),
         el('div', { className: 'info' }, [
-          el('div', { className: 'name', textContent: s.name }),
+          el('div', { className: 'name' }, [s.name, passed ? el('span', { className: 'pass-tag', textContent: `Aprobada · ${passed.grade}` }) : null]),
           el('div', { className: 'meta', textContent: [scheduleText(s), roomText(s.room)].filter(Boolean).join(' · ') || 'Sin horario' }),
           el('div', { className: 'pending' }, pending.length
             ? [el('b', { textContent: `${pending.length} pendiente${pending.length > 1 ? 's' : ''}` }), ` · próxima: ${taskLabel(pending[0])}, ${fmtDayShort.format(pending[0].date)}`]
@@ -779,8 +817,9 @@ function renderSubjectDetail() {
   const s = state.subjects.find((x) => x.id === state.subjectId);
   if (!s) { showScreen('subjects', { push: false }); return; }
   const tasks = state.tasks.filter((t) => t.subjectId === s.id).sort(taskSort);
-  const pending = tasks.filter((t) => !t.done);
-  const done = tasks.filter((t) => t.done);
+  const pending = tasks.filter((t) => !t.done && !isSuperseded(t));
+  const done = tasks.filter((t) => t.done || isSuperseded(t));
+  const passed = passedExam(s.id);
 
   const addBtn = el('button', { type: 'button', className: 'btn', textContent: 'Añadir entrega o examen' });
   addBtn.addEventListener('click', () => openTaskForm(null, { subjectId: s.id }));
@@ -795,6 +834,7 @@ function renderSubjectDetail() {
     el('div', { className: 'subject-hero', style: colored(s.color) }, [
       el('h2', { textContent: s.name }),
       el('div', { className: 'meta', textContent: [s.code, `${s.semester}.º cuatrimestre`, roomText(s.room)].filter(Boolean).join(' · ') }),
+      passed ? el('div', { className: 'pass-hero', textContent: `Aprobada con ${passed.grade}` }) : null,
       el('div', { className: 'actions' }, [addBtn, calBtn, editBtn]),
     ]),
     el('div', { className: 'section-title', textContent: `Pendientes (${pending.length})` }),
@@ -811,7 +851,7 @@ function renderSubjectDetail() {
       : [el('li', { className: 'muted', textContent: 'Sin horario. Edita la asignatura para añadirlo.' })]),
     s.teachers?.length ? el('div', { className: 'section-title', textContent: 'Profesores' }) : null,
     s.teachers?.length ? infoCard(s.teachers.map((t) => el('li', { textContent: t }))) : null,
-    done.length ? el('details', { className: 'done-list' }, [el('summary', { textContent: `Hechas (${done.length})` }), ...done.map((t) => taskRow(t, { showSubject: false }))]) : null,
+    done.length ? el('details', { className: 'done-list' }, [el('summary', { textContent: `Hechas o ya no necesarias (${done.length})` }), ...done.map((t) => taskRow(t, { showSubject: false }))]) : null,
   ].filter(Boolean));
 }
 
@@ -969,6 +1009,7 @@ function updateTaskTypeUI() {
   const f = $('#form-task');
   const timed = TASK_TYPES[f.type.value]?.timed;
   $('#task-end-wrap').hidden = !timed;
+  $('#task-exam-wrap').hidden = f.type.value !== 'examen';
   $('#task-place-wrap').hidden = !timed;
   $('#task-time-label').textContent = timed ? 'Hora' : 'Hora límite';
   if (!editingTask && !remindTouched) f.remind.value = timed ? '2880' : '1440';
@@ -982,6 +1023,7 @@ function openTaskForm(task = null, preset = {}) {
   $('#task-form-title').textContent = task ? 'Editar entrega' : 'Nueva entrega o examen';
   subjectOptions(f.subject, { none: true, selected: task?.subjectId ?? preset.subjectId ?? (state.screen === 'subject' ? state.subjectId : '') });
   f.type.value = task?.type || preset.type || 'trabajo';
+  f.exam.value = task?.exam || 'final';
   f.title.value = task?.title || '';
   f.date.value = task?.date || preset.date || (state.screen === 'calendar' ? state.date : todayISO());
   f.time.value = task?.time || '';
@@ -992,7 +1034,6 @@ function openTaskForm(task = null, preset = {}) {
   f.grade.value = task?.grade || '';
   updateTaskTypeUI();
   if (task) f.remind.value = String(task.remind ?? 1440);
-  $('#task-done-wrap').hidden = !task;
   $('#btn-delete-task').hidden = !task;
   $('#dlg-task').returnValue = '';
   $('#dlg-task').showModal();
@@ -1014,10 +1055,14 @@ async function saveTask() {
     place: timed ? f.place.value.trim() : '',
     remind: Number(f.remind.value),
     notes: f.notes.value.trim(),
-    done: prev ? f.done.checked : false,
-    grade: prev ? f.grade.value.trim() : '',
+    // Con nota puesta, se da por hecha.
+    done: f.done.checked || !!f.grade.value.trim(),
+    grade: f.grade.value.trim(),
     createdAt: prev?.createdAt || Date.now(),
+    edited: true, // así los datos iniciales ya no la sobrescriben
   };
+  if (t.type === 'examen') t.exam = f.exam.value;
+  else delete t.exam;
   const sameReminder = prev && prev.date === t.date && prev.time === t.time && prev.remind === t.remind;
   t.notified = sameReminder ? !!prev.notified : false;
 
@@ -1182,7 +1227,7 @@ async function checkReminders() {
 
   // Entregas y exámenes
   for (const t of state.tasks) {
-    if (t.done || t.notified || t.remind < 0) continue;
+    if (t.done || t.notified || t.remind < 0 || isSuperseded(t)) continue;
     const start = dateAt(t.date, t.time);
     const status = due(start, t.remind, now);
     if (status === 'wait') continue;
@@ -1356,13 +1401,21 @@ async function seed() {
     s.seededSubjects.push(subject.id);
   }
   for (const task of SEED_TASKS) {
-    if (s.seededTasks.includes(task.id)) continue;
-    if (!state.tasks.some((x) => x.id === task.id)) {
+    const existing = state.tasks.find((x) => x.id === task.id);
+    if (existing) {
+      // Datos corregidos (título, hora…): se actualizan si no la has editado tú.
+      if (!existing.edited && existing.rev !== task.rev) {
+        const moved = existing.date !== task.date || existing.time !== task.time || existing.remind !== task.remind;
+        Object.assign(existing, structuredClone(task));
+        if (moved) existing.notified = false;
+        await DB.tasks.put(existing);
+      }
+    } else if (!s.seededTasks.includes(task.id)) {
       const copy = { ...structuredClone(task), done: false, notified: false, createdAt: Date.now() };
       await DB.tasks.put(copy);
       state.tasks.push(copy);
     }
-    s.seededTasks.push(task.id);
+    if (!s.seededTasks.includes(task.id)) s.seededTasks.push(task.id);
   }
   saveSettings();
 }

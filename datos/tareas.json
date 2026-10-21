@@ -42,9 +42,165 @@
   {
     "asignatura": "53001586",
     "tipo": "examen",
-    "titulo": "",
+    "titulo": "Primer parcial",
     "fecha": "2026-11-27",
     "hora": "15:30",
-    "notas": "Entra hasta el tema 2.1 incluido.\nHora por confirmar (15:30). Duración provisional: 2 horas."
+    "notas": "Entra hasta el tema 2.1 incluido. Si se aprueba, libera la primera parte de la asignatura en el examen final.\nHora por confirmar (15:30). Duración provisional: 2 horas.",
+    "id": "t-c41053c674e2",
+    "convocatoria": "parcial"
+  },
+  {
+    "asignatura": "53001592",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-08",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001594-S1",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-12",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001593",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-15",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001596",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-20",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001606",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-20",
+    "hora": "11:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001598",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-22",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001586",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-01-27",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (enero). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001588",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-05-28",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001587",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-05-31",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001589",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-01",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001591",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-02",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001590",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-04",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001595",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-09",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001599",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-10",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001600",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-11",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001601",
+    "tipo": "examen",
+    "titulo": "Examen final",
+    "fecha": "2027-06-14",
+    "hora": "15:30",
+    "notas": "Convocatoria ordinaria (junio). Duración por confirmar.",
+    "convocatoria": "final"
+  },
+  {
+    "asignatura": "53001606",
+    "tipo": "examen",
+    "titulo": "Examen extraordinario",
+    "fecha": "2027-06-30",
+    "hora": "11:30",
+    "aviso": -1,
+    "notas": "Convocatoria extraordinaria. Solo si no se aprueba en enero. Duración por confirmar.",
+    "convocatoria": "extraordinaria"
   }
 ]

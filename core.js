@@ -323,11 +323,26 @@ function taskLabel(task) {
   return task.title || TASK_TYPES[task.type]?.label || 'Entrega';
 }
 
-// "Examen: Parcial 1", o "Trabajo · Tecnología de Radiaciones" si no tiene título propio.
+// El título ya dice qué es ("Examen final") o no tiene título propio: hace falta la asignatura.
+function titleNeedsSubject(task) {
+  const type = (TASK_TYPES[task.type]?.label || 'Entrega').toLowerCase();
+  return !task.title || task.title.toLowerCase().startsWith(type);
+}
+
+// "Trabajo: Tarea 1", "Examen final · Física Nuclear" o "Trabajo · Tecnología de Radiaciones".
 function taskFullTitle(task) {
   const type = TASK_TYPES[task.type]?.label || 'Entrega';
-  if (task.title && task.title.toLowerCase() !== type.toLowerCase()) return `${type}: ${task.title}`;
-  return `${type} · ${subjectOf(task)?.name || 'Sin asignatura'}`;
+  const subject = subjectOf(task)?.name || 'Sin asignatura';
+  if (!task.title) return `${type} · ${subject}`;
+  return titleNeedsSubject(task) ? `${task.title} · ${subject}` : `${type}: ${task.title}`;
+}
+
+// Versión corta para las etiquetas del calendario: "Física Nuclear: Examen final".
+function taskShortTitle(task) {
+  const type = TASK_TYPES[task.type]?.label || 'Entrega';
+  const subject = subjectOf(task)?.short || '';
+  if (!titleNeedsSubject(task)) return task.title;
+  return subject ? `${subject}: ${task.title || type}` : task.title || type;
 }
 
 function taskSort(a, b) {
@@ -335,7 +350,53 @@ function taskSort(a, b) {
 }
 
 function pendingTasks() {
-  return state.tasks.filter((t) => !t.done).sort(taskSort);
+  return state.tasks.filter((t) => !t.done && !isSuperseded(t)).sort(taskSort);
+}
+
+// ---------- Notas y aprobados ----------
+
+const EXAM_KINDS = { parcial: 'Parcial', final: 'Final', extraordinaria: 'Extraordinaria' };
+
+// Nota como número (acepta "7,5", "Apto", "Suspenso"…); null si no hay nota.
+function gradeValue(task) {
+  const g = String(task.grade || '').trim();
+  if (!g) return null;
+  const n = parseFloat(g.replace(',', '.'));
+  if (!Number.isNaN(n)) return n;
+  if (/no apto|suspen/i.test(g)) return 0;
+  if (/apto|aprob/i.test(g)) return 10;
+  return null;
+}
+
+function isPassed(task) {
+  const v = gradeValue(task);
+  return v != null && v >= 5;
+}
+
+function isExam(task) {
+  return task.type === 'examen';
+}
+
+// Examen final o extraordinario aprobado de una asignatura (los parciales no cuentan).
+function passedExam(subjectId) {
+  if (!subjectId) return null;
+  return state.tasks
+    .filter((t) => t.subjectId === subjectId && isExam(t) && t.exam !== 'parcial' && isPassed(t))
+    .sort(taskSort)[0] || null;
+}
+
+// Examen que ya no hace falta porque la asignatura se aprobó en uno anterior.
+function isSuperseded(task) {
+  if (!isExam(task) || task.grade) return false;
+  const passed = passedExam(task.subjectId);
+  return !!passed && passed.id !== task.id && passed.date <= task.date;
+}
+
+// Parciales aprobados antes de un examen final: esa parte queda liberada.
+function freedParts(task) {
+  if (!isExam(task) || task.exam === 'parcial') return [];
+  return state.tasks.filter((t) => t.subjectId === task.subjectId && isExam(t)
+    && t.exam === 'parcial' && isPassed(t) && t.date < task.date);
 }
 
 // ---------- Todo lo de un día, listo para pintar ----------
@@ -422,19 +483,25 @@ function itemsOn(iso) {
   }
 
   for (const t of state.tasks) {
-    if (t.date !== iso || hide.taskTypes.includes(t.type)) continue;
+    if (t.date !== iso || hide.taskTypes.includes(t.type) || isSuperseded(t)) continue;
     if (hide.subjects.includes(t.subjectId || 'none')) continue;
     const subject = subjectOf(t);
-    const type = TASK_TYPES[t.type]?.label || 'Entrega';
+    const title = taskFullTitle(t);
     // Exámenes y presentaciones con hora ocupan su franja; el resto son fechas límite.
     const timed = TASK_TYPES[t.type]?.timed && t.time;
     const start = timed ? minutes(t.time) : null;
     items.push({
       key: `t-${t.id}`, kind: 'task', date: iso, ref: t, done: !!t.done,
       start, end: timed ? (minutes(t.end) || start + 120) : null,
-      title: taskFullTitle(t),
-      short: t.title && t.title.toLowerCase() !== type.toLowerCase() ? t.title : `${type} ${subject?.short || ''}`,
-      sub: [subject?.name, t.time && !timed ? `Entrega a las ${t.time}` : '', t.place].filter(Boolean).join(' · '),
+      title,
+      short: taskShortTitle(t),
+      sub: [
+        title.includes(subject?.name) ? '' : subject?.name,
+        t.time && !timed ? `Entrega a las ${t.time}` : '',
+        t.place,
+        freedParts(t).length ? 'Parte liberada' : '',
+        t.grade ? `Nota: ${t.grade}` : '',
+      ].filter(Boolean).join(' · '),
       color: taskColor(t),
     });
   }

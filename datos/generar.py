@@ -53,15 +53,21 @@ for sem in (1, 2):
 
 tasks = []
 for t in load('tareas.json'):
-    # Id estable: si se vuelve a generar, la app no duplica la tarea.
+    # Id estable: si se vuelve a generar, la app no duplica la tarea. Se puede fijar con "id"
+    # para cambiar el título o la fecha de una tarea ya publicada sin duplicarla.
     key = f"{t['asignatura']}|{t['titulo']}|{t['fecha']}"
-    tasks.append({
-        'id': 't-' + hashlib.sha1(key.encode()).hexdigest()[:12],
+    task = {
+        'id': t.get('id') or 't-' + hashlib.sha1(key.encode()).hexdigest()[:12],
         'subjectId': subject_id(t['asignatura']), 'type': t['tipo'], 'title': t['titulo'],
         'date': t['fecha'], 'time': t.get('hora') or '', 'end': t.get('fin') or '',
         'place': t.get('lugar') or '', 'notes': t.get('notas') or '',
-        'remind': 2880 if t['tipo'] in ('examen', 'presentacion') else 1440,
-    })
+        'remind': t['aviso'] if 'aviso' in t else 2880 if t['tipo'] in ('examen', 'presentacion') else 1440,
+    }
+    if t['tipo'] == 'examen':
+        task['exam'] = t.get('convocatoria') or 'final'
+    # Huella del contenido: si cambia, la app actualiza la tarea (si no la has editado tú).
+    task['rev'] = hashlib.sha1(json.dumps(task, sort_keys=True).encode()).hexdigest()[:10]
+    tasks.append(task)
 
 cal = load('calendario-academico-2026-27.json')
 academic = {

@@ -230,6 +230,13 @@
         <legend>Tipo</legend>
         <div id="task-types" class="chips"></div>
       </fieldset>
+      <label id="task-exam-wrap">Convocatoria
+        <select name="exam">
+          <option value="parcial">Parcial (si lo apruebas, libera esa parte)</option>
+          <option value="final">Final</option>
+          <option value="extraordinaria">Extraordinaria</option>
+        </select>
+      </label>
       <input name="title" class="input-title" maxlength="160" placeholder="Título (p. ej. Tarea 2 - Informe)" aria-label="Título">
       <div class="three">
         <label>Fecha <input name="date" type="date" required></label>
@@ -248,9 +255,9 @@
         </select>
       </label>
       <label>Notas <textarea name="notes" rows="3" placeholder="Enunciado, enlace, qué entra…"></textarea></label>
-      <div id="task-done-wrap" class="two">
+      <div class="two">
+        <label>Nota <input name="grade" maxlength="20" placeholder="p. ej. 7,5 o Apto" inputmode="decimal"></label>
         <label class="check"><input type="checkbox" name="done"><span>Hecha</span></label>
-        <label>Nota <input name="grade" maxlength="20" placeholder="Opcional"></label>
       </div>
       <div class="form-actions">
         <button id="btn-delete-task" class="btn danger" type="button">Borrar</button>

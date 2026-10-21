@@ -154,12 +154,16 @@
     <form id="form-event" method="dialog">
       <h3 id="event-form-title">Nuevo evento</h3>
       <input name="title" class="input-title" required maxlength="120" placeholder="Añade un título" aria-label="Título">
-      <div class="three">
-        <label>Día <input name="date" type="date" required></label>
-        <label>Empieza <input name="time" type="time"></label>
-        <label>Termina <input name="end" type="time"></label>
+      <div class="when-grid">
+        <span class="when-label">Empieza</span>
+        <input name="date" type="date" required aria-label="Día en que empieza">
+        <input name="time" type="time" aria-label="Hora a la que empieza">
+        <span class="when-label">Termina</span>
+        <input name="endDate" type="date" aria-label="Día en que termina">
+        <input name="end" type="time" aria-label="Hora a la que termina">
       </div>
-      <label>Repetir
+      <p class="muted small hint">Sin hora, el evento dura el día entero. Para varios días, cambia el día en que termina.</p>
+      <label id="repeat-wrap">Repetir
         <select name="repeat">
           <option value="none">No se repite</option>
           <option value="weekly">Cada semana…</option>

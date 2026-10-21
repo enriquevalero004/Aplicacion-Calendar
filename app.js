@@ -381,11 +381,29 @@ function renderTimeGrid(days) {
   }
 
   // Fila de "todo el día": entregas, festivos y planes sin hora
+  // Los eventos de varios días son una barra que cruza sus columnas.
   const perDay = days.map((iso) => itemsOn(iso));
-  const allday = el('div', { className: 'tg-row tg-allday' }, [el('span')]);
-  for (const items of perDay) {
-    allday.append(el('div', { className: 'cell' }, items.filter((it) => it.start == null).map((it) => chip(it, { withTime: !narrow }))));
+  const allday = el('div', { className: 'tg-row tg-allday' }, [el('span', { style: { gridColumn: '1', gridRow: '1' } })]);
+  const spans = new Map();
+  perDay.forEach((items, i) => items.filter((it) => it.multi).forEach((it) => {
+    const s = spans.get(it.ref.id) || { item: it, from: i };
+    s.to = i;
+    spans.set(it.ref.id, s);
+  }));
+  for (const { item, from, to } of [...spans.values()].sort((a, b) => (b.to - b.from) - (a.to - a.from) || a.from - b.from)) {
+    const bar = chip(item, { withTime: false });
+    bar.style.gridColumn = `${from + 2} / ${to + 3}`;
+    if (item.ref.date < days[from]) bar.classList.add('span-left');
+    if (item.ref.endDate > days[to]) bar.classList.add('span-right');
+    allday.append(bar);
   }
+  perDay.forEach((items, i) => {
+    for (const it of items.filter((x) => x.start == null && !x.multi)) {
+      const c = chip(it, { withTime: !narrow });
+      c.style.gridColumn = String(i + 2);
+      allday.append(c);
+    }
+  });
 
   // Rejilla de horas
   const hours = el('div', { className: 'tg-hours' });
@@ -470,7 +488,7 @@ function renderMonth() {
 }
 
 function agendaItem(item) {
-  let time = item.start == null ? 'Todo el día' : `${timeText(item.start)} – ${timeText(item.end)}`;
+  let time = item.start == null ? (item.multi ? '' : 'Todo el día') : `${timeText(item.start)} – ${timeText(item.end)}`;
   let sub = item.sub;
   if (item.kind === 'task' && item.start == null) {
     time = item.ref.time ? `Entrega antes de las ${item.ref.time}` : 'Entrega';
@@ -566,13 +584,21 @@ function openItem(item) {
   else toast(item.title);
 }
 
+function eventWhen(ev) {
+  if (isMultiDay(ev)) {
+    const part = (iso, time) => `${fmtDayLong.format(iso)}${time ? ` a las ${time}` : ''}`;
+    return `Del ${part(ev.date, ev.time).replace(/^./, (c) => c.toLowerCase())} al ${part(ev.endDate, ev.end).replace(/^./, (c) => c.toLowerCase())} (${daysBetween(ev.date, ev.endDate) + 1} días)`;
+  }
+  const time = ev.time ? `${ev.time}${ev.end ? ` – ${ev.end}` : ''}` : 'Todo el día';
+  return `${fmtDayFull.format(ev.date)} · ${time}`;
+}
+
 function openEventSheet(ev) {
   const cat = categoryOf(ev);
-  const time = ev.time ? `${ev.time}${ev.end ? ` – ${ev.end}` : ''}` : 'Todo el día';
   showSheet({
     color: CATEGORIES[cat].color,
     title: ev.title,
-    lines: [`${fmtDayFull.format(ev.date)} · ${time}`, describeRepeat(ev), ev.place, remindText(ev.remind)],
+    lines: [eventWhen(ev), describeRepeat(ev), ev.place, remindText(ev.remind)],
     badges: [cat !== 'general' ? CATEGORIES[cat].label : null, isHighlighted(ev) ? 'Destacado' : null].filter(Boolean),
     text: ev.description,
     gallery: ev.photos,
@@ -889,7 +915,7 @@ function renderHighlights() {
     const card = el('article', { className: 'highlight', style: { '--c': CATEGORIES[cat].color } }, [
       ev.photos?.length ? el('img', { className: 'cover', src: ev.photos[0], alt: '' }) : null,
       el('div', { className: 'body' }, [
-        el('div', { className: 'date', textContent: [fmtDayFull.format(ev.date) + (ev.time ? ` · ${ev.time}` : ''), cat !== 'general' ? CATEGORIES[cat].label : ''].filter(Boolean).join(' · ') }),
+        el('div', { className: 'date', textContent: [isMultiDay(ev) ? spanText(ev) : fmtDayFull.format(ev.date) + (ev.time ? ` · ${ev.time}` : ''), cat !== 'general' ? CATEGORIES[cat].label : ''].filter(Boolean).join(' · ') }),
         el('h4', { textContent: ev.title }),
         ev.description ? el('p', { textContent: ev.description }) : null,
         ev.photos?.length > 1 ? el('p', { textContent: `${ev.photos.length} fotos` }) : null,
@@ -904,6 +930,7 @@ function renderHighlights() {
 
 let draftPhotos = [];
 let editingEvent = null;
+let formStartDate = null; // día de inicio que había antes de cambiarlo
 
 function openEventForm(ev = null, preset = {}) {
   editingEvent = ev;
@@ -913,6 +940,8 @@ function openEventForm(ev = null, preset = {}) {
   f.title.value = ev?.title || '';
   f.date.value = ev?.date || preset.date || (state.screen === 'calendar' ? state.date : todayISO());
   f.time.value = ev?.time ?? preset.time ?? '';
+  f.endDate.value = ev?.endDate || f.date.value;
+  formStartDate = f.date.value;
   f.end.value = ev?.end ?? preset.end ?? '';
   f.place.value = ev?.place || '';
   f.remind.value = String(ev?.remind ?? 30);
@@ -933,6 +962,10 @@ function openEventForm(ev = null, preset = {}) {
 
 function updateRepeatUI() {
   const f = $('#form-event');
+  // Un evento de varios días no se repite.
+  const multi = f.endDate.value > f.date.value;
+  $('#repeat-wrap').hidden = multi;
+  if (multi) f.repeat.value = 'none';
   $('#repeat-block').hidden = f.repeat.value === 'none';
   $('#weekday-picker').hidden = f.repeat.value !== 'weekly';
 }
@@ -978,13 +1011,16 @@ async function saveEvent() {
   const f = $('#form-event');
   const prev = editingEvent;
   const time = f.time.value;
+  const endDate = f.endDate.value > f.date.value ? f.endDate.value : '';
   const ev = {
     ...(prev || {}),
     id: prev?.id || newId('e-'),
     title: f.title.value.trim(),
     date: f.date.value,
+    endDate,
     time,
-    end: time && f.end.value > time ? f.end.value : '',
+    // Si termina otro día vale cualquier hora; si es el mismo día, tiene que ser después.
+    end: endDate ? f.end.value : time && f.end.value > time ? f.end.value : '',
     place: f.place.value.trim(),
     remind: Number(f.remind.value),
     description: f.description.value.trim(),
@@ -1307,7 +1343,7 @@ function eventToICS(series) {
   let date = series.date;
   if (series.repeat) while (!series.repeat.days.includes(weekdayOf(date))) date = addDays(date, 1);
   return {
-    uid: series.id, title: series.title, date, time: series.time, end: series.end,
+    uid: series.id, title: series.title, date, endDate: series.endDate, time: series.time, end: series.end,
     description: series.description, place: series.place, remind: series.remind,
     repeat: series.repeat, skip: series.skip,
   };
@@ -1333,12 +1369,13 @@ function downloadICS(item) {
     `UID:${item.uid}@mi-calendario`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
   ];
+  const lastDay = item.endDate || item.date;
   if (item.time) {
     const start = dateAt(item.date, item.time);
-    const end = item.end ? dateAt(item.date, item.end) : new Date(start.getTime() + 3600000);
+    const end = item.end ? dateAt(lastDay, item.end) : item.endDate ? dateAt(lastDay, '23:59') : new Date(start.getTime() + 3600000);
     lines.push(`DTSTART:${icsStamp(start)}`, `DTEND:${icsStamp(end)}`);
   } else {
-    lines.push(`DTSTART;VALUE=DATE:${item.date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${addDays(item.date, 1).replace(/-/g, '')}`);
+    lines.push(`DTSTART;VALUE=DATE:${item.date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${addDays(lastDay, 1).replace(/-/g, '')}`);
   }
   lines.push(`SUMMARY:${icsEscape(item.title)}`);
   if (item.description) lines.push(`DESCRIPTION:${icsEscape(item.description)}`);
@@ -1527,7 +1564,21 @@ function bindUI() {
   // Formulario de evento
   const fe = $('#form-event');
   fe.repeat.addEventListener('change', updateRepeatUI);
+  // Al mover el inicio, el final se mueve con él (como en Google Calendar).
+  fe.date.addEventListener('change', () => {
+    if (formStartDate && fe.date.value && fe.endDate.value) {
+      fe.endDate.value = addDays(fe.endDate.value, daysBetween(formStartDate, fe.date.value));
+    }
+    if (!fe.endDate.value || fe.endDate.value < fe.date.value) fe.endDate.value = fe.date.value;
+    formStartDate = fe.date.value;
+    updateRepeatUI();
+  });
+  fe.endDate.addEventListener('change', () => {
+    if (fe.endDate.value < fe.date.value) fe.endDate.value = fe.date.value;
+    updateRepeatUI();
+  });
   fe.time.addEventListener('change', () => {
+    if (fe.endDate.value > fe.date.value) return;
     if (fe.time.value && (!fe.end.value || fe.end.value <= fe.time.value)) {
       fe.end.value = timeText(Math.min(minutes(fe.time.value) + 60, 23 * 60 + 59));
     }

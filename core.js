@@ -196,8 +196,19 @@ function isHighlighted(ev) {
   return ev.highlight ?? !!ev.couple;
 }
 
+// Evento que termina otro día (los de varios días no se repiten).
+function isMultiDay(ev) {
+  return !ev.repeat && !!ev.endDate && ev.endDate > ev.date;
+}
+
+// "lun, 2 nov 18:00 – mié, 4 nov 12:00"
+function spanText(ev) {
+  const part = (iso, time) => `${fmtDayShort.format(iso)}${time ? ` ${time}` : ''}`;
+  return `${part(ev.date, ev.time)} – ${part(ev.endDate, ev.end)}`;
+}
+
 function occursOn(ev, iso) {
-  if (!ev.repeat) return ev.date === iso;
+  if (!ev.repeat) return iso >= ev.date && iso <= (isMultiDay(ev) ? ev.endDate : ev.date);
   return iso >= ev.date
     && (!ev.repeat.until || iso <= ev.repeat.until)
     && ev.repeat.days.includes(weekdayOf(iso))
@@ -521,6 +532,17 @@ function itemsOn(iso) {
 
   for (const ev of eventsOn(iso)) {
     if (hide.categories.includes(categoryOf(ev))) continue;
+    if (isMultiDay(ev)) {
+      // Se pinta como evento de día entero en cada uno de sus días.
+      const total = daysBetween(ev.date, ev.endDate) + 1;
+      items.push({
+        key: `e-${ev.id}-${iso}`, kind: 'event', date: iso, ref: ev, start: null, end: null, multi: true,
+        title: ev.title, short: ev.title,
+        sub: [`Día ${daysBetween(ev.date, iso) + 1} de ${total}`, spanText(ev), ev.place].filter(Boolean).join(' · '),
+        color: CATEGORIES[categoryOf(ev)].color,
+      });
+      continue;
+    }
     const start = minutes(ev.time);
     items.push({
       key: `e-${ev.id}-${iso}`, kind: 'event', date: iso, ref: ev,

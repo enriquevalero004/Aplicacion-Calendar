@@ -168,9 +168,6 @@ svg { display: block; }
 }
 .tg-dayhead.today .wd { color: var(--accent); font-weight: 700; }
 .tg-dayhead.today .num { background: var(--accent); color: var(--on-accent); }
-.tg-allday { min-height: 4px; padding: 2px 0 4px; }
-.tg-allday .cell { display: flex; flex-direction: column; gap: 2px; padding: 0 2px; min-width: 0; }
-.tg-allday .gutter-label { font-size: .65rem; color: var(--muted); text-align: right; padding: 4px 6px 0 0; }
 
 .tg-body { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
 .tg-grid { position: relative; height: calc(var(--hour) * 24); }
@@ -482,3 +479,12 @@ textarea { resize: vertical; }
 .pass-hero { display: inline-block; margin-top: 8px; font-size: .85rem; font-weight: 700; background: rgba(255, 255, 255, .92); color: #137333; border-radius: 999px; padding: 3px 10px; }
 @media (prefers-color-scheme: dark) { .pass-tag { color: #81c995; background: #1e3a2a; } }
 .toast { width: max-content; }
+
+/* Eventos de varios días */
+.when-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 4px 8px; align-items: center; }
+.when-label { grid-column: 1 / -1; font-size: .85rem; color: var(--muted); margin-top: 4px; }
+.hint { margin: -6px 0 0; }
+.tg-allday { grid-auto-flow: row dense; row-gap: 2px; padding: 2px 0 4px; }
+.tg-allday > .chip-item { margin: 0 2px; width: auto; min-width: 0; }
+.chip-item.span-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+.chip-item.span-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }

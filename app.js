@@ -65,13 +65,60 @@ function formatter(options) {
 const fmtMonth = formatter({ month: 'long', year: 'numeric' });
 const fmtDayLong = formatter({ weekday: 'long', day: 'numeric', month: 'long' });
 const fmtDayFull = formatter({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fmtShort = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long' });
 
 function sortEvents(list) {
   return [...list].sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
 }
 
+// ---------- Planes que se repiten ----------
+// Un plan repetido guarda repeat = { days: [0..6] (lunes = 0), until: 'AAAA-MM-DD' | '' }
+// y skip = días sueltos que se han quitado. Cada día se muestra como una copia del plan.
+
+const WEEKDAYS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+
+function weekdayOf(iso) {
+  return (parseISODate(iso).getDay() + 6) % 7;
+}
+
+function addDays(iso, n) {
+  const d = parseISODate(iso);
+  d.setDate(d.getDate() + n);
+  return toISODate(d);
+}
+
+function occursOn(ev, iso) {
+  if (!ev.repeat) return ev.date === iso;
+  return iso >= ev.date
+    && (!ev.repeat.until || iso <= ev.repeat.until)
+    && ev.repeat.days.includes(weekdayOf(iso))
+    && !(ev.skip || []).includes(iso);
+}
+
+function describeRepeat(ev) {
+  if (!ev.repeat) return '';
+  const { days, until } = ev.repeat;
+  let text;
+  if (days.length === 7) text = 'Todos los días';
+  else if (days.join() === '0,1,2,3,4') text = 'De lunes a viernes';
+  else {
+    const names = days.map((d) => WEEKDAYS[d]);
+    text = 'Cada ' + (names.length > 1 ? names.slice(0, -1).join(', ') + ' y ' + names.at(-1) : names[0]);
+  }
+  return until ? `${text} hasta el ${fmtShort.format(parseISODate(until))}` : text;
+}
+
+// Copia del plan para un día concreto (el plan original se busca por id).
+function instanceOn(ev, iso) {
+  return ev.repeat ? { ...ev, date: iso } : ev;
+}
+
+function seriesOf(ev) {
+  return state.events.find((e) => e.id === ev.id) || ev;
+}
+
 function eventsOn(date) {
-  return sortEvents(state.events.filter((e) => e.date === date));
+  return sortEvents(state.events.filter((e) => occursOn(e, date)).map((e) => instanceOn(e, date)));
 }
 
 function el(tag, props = {}, children = []) {
@@ -120,7 +167,7 @@ function renderCalendar() {
   for (let i = 0; i < 42; i++) {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const iso = toISODate(d);
-    const dayEvents = state.events.filter((e) => e.date === iso);
+    const dayEvents = eventsOn(iso);
     const cats = new Set(dayEvents.map(categoryOf));
     const special = Object.keys(CATEGORIES).filter((c) => c !== 'general' && cats.has(c));
 
@@ -153,6 +200,7 @@ function eventItem(ev) {
     el('div', { className: 'info' }, [
       el('div', { className: 'title', textContent: prefix(ev) + ev.title }),
       ev.description ? el('div', { className: 'desc', textContent: ev.description }) : null,
+      ev.repeat ? el('div', { className: 'repeat', textContent: '🔁 ' + describeRepeat(ev) }) : null,
     ]),
     ev.photos?.length ? el('img', { src: ev.photos[0], alt: '' }) : null,
   ]);
@@ -217,6 +265,7 @@ function openViewer(ev) {
   $('#viewer-body').replaceChildren(
     el('h3', { textContent: ev.title }),
     el('div', { className: 'meta', textContent: `${fmtDayFull.format(parseISODate(ev.date))} · ${ev.time || 'todo el día'} · ${remindText}` }),
+    ev.repeat ? el('div', { className: 'meta', textContent: '🔁 ' + describeRepeat(ev) }) : null,
     categoryOf(ev) !== 'general'
       ? el('span', { className: 'badge', textContent: `${CATEGORIES[categoryOf(ev)].emoji} ${CATEGORIES[categoryOf(ev)].label}` })
       : null,
@@ -225,6 +274,7 @@ function openViewer(ev) {
       ? el('div', { className: 'gallery' }, ev.photos.map((src) => el('img', { src, alt: '' })))
       : null,
   );
+  $('#btn-skip').hidden = !ev.repeat;
   $('#dlg-view').showModal();
 }
 
@@ -241,11 +291,32 @@ function openForm(ev = null) {
   f.remind.value = String(ev?.remind ?? 30);
   f.description.value = ev?.description || '';
   f.category.value = ev ? categoryOf(ev) : 'general';
+  const days = ev?.repeat?.days || [weekdayOf(f.date.value)];
+  f.repeat.value = !ev?.repeat ? 'none' : days.length === 7 ? 'daily' : 'weekly';
+  for (const box of f.days) box.checked = days.includes(Number(box.value));
+  f.until.value = ev?.repeat?.until || '';
+  updateRepeatUI();
   state.draftPhotos = [...(ev?.photos || [])];
   $('#btn-delete').hidden = !ev;
   renderDraftPhotos();
   $('#dlg-event').returnValue = '';
   $('#dlg-event').showModal();
+}
+
+function updateRepeatUI() {
+  const f = $('#form-event');
+  $('#repeat-block').hidden = f.repeat.value === 'none';
+  $('#weekday-picker').hidden = f.repeat.value !== 'weekly';
+}
+
+function readRepeat(f) {
+  if (f.repeat.value === 'none') return null;
+  let days = f.repeat.value === 'daily'
+    ? [0, 1, 2, 3, 4, 5, 6]
+    : [...f.days].filter((b) => b.checked).map((b) => Number(b.value));
+  if (!days.length) days = [weekdayOf(f.date.value)];
+  const until = f.until.value && f.until.value >= f.date.value ? f.until.value : '';
+  return { days, until };
 }
 
 function renderDraftPhotos() {
@@ -291,11 +362,15 @@ async function saveForm() {
     category: f.category.value,
     couple: f.category.value === 'pareja',
     photos: state.draftPhotos,
+    repeat: readRepeat(f),
     createdAt: prev?.createdAt || Date.now(),
   };
+  if (ev.repeat && prev?.repeat) ev.skip = prev.skip || [];
   // Si cambia la hora o el aviso, se vuelve a avisar.
-  const sameReminder = prev && prev.date === ev.date && prev.time === ev.time && prev.remind === ev.remind;
+  const sameReminder = prev && prev.date === ev.date && prev.time === ev.time && prev.remind === ev.remind
+    && !!prev.repeat === !!ev.repeat;
   ev.notified = sameReminder ? !!prev.notified : false;
+  ev.notifiedDates = sameReminder ? prev.notifiedDates || [] : [];
 
   await DB.put(ev);
   state.events = state.events.filter((e) => e.id !== ev.id).concat(ev);
@@ -363,21 +438,32 @@ function describeWhen(ev, now) {
 async function checkReminders() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const now = new Date();
-  for (const ev of state.events) {
-    if (ev.remind < 0 || ev.notified) continue;
-    const start = eventStart(ev);
-    const fireAt = new Date(start.getTime() - ev.remind * 60000);
-    if (now < fireAt) continue;
-    // Si el plan ya pasó hace rato, no molestamos con un aviso viejo.
-    const tooLate = now - start > 60 * 60000;
-    const sent = !tooLate && await notify(
-      CATEGORIES[categoryOf(ev)].emoji + ' ' + ev.title,
-      describeWhen(ev, now) + (ev.description ? ` · ${ev.description}` : ''),
-      ev.id,
-    );
-    if (sent || tooLate) {
-      ev.notified = true;
-      await DB.put(ev);
+  const today = toISODate(now);
+  for (const series of state.events) {
+    if (series.remind < 0) continue;
+    // Los planes repetidos se miran de ayer a mañana (el aviso más largo es de 1 día).
+    const dates = series.repeat
+      ? [addDays(today, -1), today, addDays(today, 1)].filter((d) => occursOn(series, d))
+      : [series.date];
+    for (const date of dates) {
+      const done = series.repeat ? (series.notifiedDates || []).includes(date) : series.notified;
+      if (done) continue;
+      const ev = instanceOn(series, date);
+      const start = eventStart(ev);
+      const fireAt = new Date(start.getTime() - ev.remind * 60000);
+      if (now < fireAt) continue;
+      // Si el plan ya pasó hace rato, no molestamos con un aviso viejo.
+      const tooLate = now - start > 60 * 60000;
+      const sent = !tooLate && await notify(
+        CATEGORIES[categoryOf(ev)].emoji + ' ' + ev.title,
+        describeWhen(ev, now) + (ev.description ? ` · ${ev.description}` : ''),
+        `${ev.id}-${date}`,
+      );
+      if (sent || tooLate) {
+        if (series.repeat) series.notifiedDates = [...(series.notifiedDates || []), date].slice(-10);
+        else series.notified = true;
+        await DB.put(series);
+      }
     }
   }
 }
@@ -407,7 +493,16 @@ function icsDate(d) {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
 }
 
-function downloadICS(ev) {
+const ICS_DAYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+
+function downloadICS(series) {
+  // En un plan repetido, el primer día tiene que caer en uno de los días elegidos.
+  let ev = series;
+  if (series.repeat) {
+    let first = series.date;
+    while (!series.repeat.days.includes(weekdayOf(first))) first = addDays(first, 1);
+    ev = { ...series, date: first };
+  }
   const start = eventStart(ev);
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mi Calendario//ES', 'BEGIN:VEVENT',
@@ -422,6 +517,15 @@ function downloadICS(ev) {
     lines.push(`DTSTART;VALUE=DATE:${ev.date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${toISODate(next).replace(/-/g, '')}`);
   }
   lines.push(`SUMMARY:${icsEscape(prefix(ev) + ev.title)}`);
+  if (ev.repeat) {
+    const until = ev.repeat.until ? `;UNTIL=${ev.repeat.until.replace(/-/g, '')}T235959` : '';
+    lines.push(`RRULE:FREQ=WEEKLY;BYDAY=${ev.repeat.days.map((d) => ICS_DAYS[d]).join(',')}${until}`);
+    for (const day of ev.skip || []) {
+      lines.push(ev.time
+        ? `EXDATE:${icsDate(eventStart({ ...ev, date: day }))}`
+        : `EXDATE;VALUE=DATE:${day.replace(/-/g, '')}`);
+    }
+  }
   if (ev.description) lines.push(`DESCRIPTION:${icsEscape(ev.description)}`);
   if (ev.remind >= 0) {
     lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEscape(ev.title)}`, `TRIGGER:-PT${ev.remind}M`, 'END:VALARM');
@@ -494,6 +598,8 @@ function bindUI() {
   $('#fab').addEventListener('click', () => openForm());
   $('#btn-notif').addEventListener('click', requestNotifications);
 
+  $('#form-event').repeat.addEventListener('change', updateRepeatUI);
+
   $('#inp-photos').addEventListener('change', async (e) => {
     const files = [...e.target.files];
     e.target.value = '';
@@ -513,7 +619,8 @@ function bindUI() {
 
   $('#btn-delete').addEventListener('click', async () => {
     const ev = state.editing;
-    if (!ev || !confirm(`¿Borrar “${ev.title}”?`)) return;
+    const question = ev?.repeat ? `¿Borrar “${ev.title}” de todos los días?` : `¿Borrar “${ev?.title}”?`;
+    if (!ev || !confirm(question)) return;
     await DB.remove(ev.id);
     state.events = state.events.filter((e) => e.id !== ev.id);
     $('#dlg-event').close('deleted');
@@ -524,9 +631,18 @@ function bindUI() {
   $('#btn-close-view').addEventListener('click', () => $('#dlg-view').close());
   $('#btn-edit').addEventListener('click', () => {
     $('#dlg-view').close();
-    openForm(state.viewing);
+    openForm(seriesOf(state.viewing));
   });
-  $('#btn-ics').addEventListener('click', () => downloadICS(state.viewing));
+  $('#btn-ics').addEventListener('click', () => downloadICS(seriesOf(state.viewing)));
+  $('#btn-skip').addEventListener('click', async () => {
+    const day = state.viewing.date;
+    const series = seriesOf(state.viewing);
+    series.skip = [...new Set([...(series.skip || []), day])];
+    await DB.put(series);
+    $('#dlg-view').close();
+    renderAll();
+    toast(`Quitado solo el ${fmtShort.format(parseISODate(day))}`);
+  });
 
   // Cerrar diálogos tocando fuera.
   for (const dlg of document.querySelectorAll('dialog')) {

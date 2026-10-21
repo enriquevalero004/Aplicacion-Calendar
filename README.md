@@ -7,6 +7,8 @@ App sencilla para organizar los días, instalable en el móvil (PWA).
   y un resumen de los planes del día al abrir la app.
 - 🏷️ **Tipos de plan**: 📅 General, 📚 Carrera y estudios, 🎉 Amigos, 💪 Gym y 💖 Con mi novia.
   Cada tipo tiene su color y su emoji en el calendario.
+- 🔁 **Planes que se repiten**: cada semana en los días que elijas (p. ej. gym L-X-V) o todos los días,
+  con fecha de fin opcional. Puedes saltarte un día suelto sin borrar el resto.
 - 💖 **Planes en pareja**: elige el tipo “Con mi novia”, añade fotos y una descripción.
   Todos aparecen en la pestaña **Nuestros planes**, como un álbum de recuerdos.
 - 📲 **Añadir a mi calendario**: descarga el plan como `.ics` para guardarlo en el calendario

@@ -90,6 +90,25 @@
         <label>Día <input name="date" type="date" required></label>
         <label>Hora <input name="time" type="time"></label>
       </div>
+      <label>Repetir
+        <select name="repeat">
+          <option value="none">No se repite</option>
+          <option value="weekly">Cada semana…</option>
+          <option value="daily">Todos los días</option>
+        </select>
+      </label>
+      <div id="repeat-block" class="repeat-block" hidden>
+        <div id="weekday-picker" class="weekday-picker" role="group" aria-label="Días de la semana">
+          <label><input type="checkbox" name="days" value="0"><span>L</span></label>
+          <label><input type="checkbox" name="days" value="1"><span>M</span></label>
+          <label><input type="checkbox" name="days" value="2"><span>X</span></label>
+          <label><input type="checkbox" name="days" value="3"><span>J</span></label>
+          <label><input type="checkbox" name="days" value="4"><span>V</span></label>
+          <label><input type="checkbox" name="days" value="5"><span>S</span></label>
+          <label><input type="checkbox" name="days" value="6"><span>D</span></label>
+        </div>
+        <label>Hasta (opcional) <input name="until" type="date"></label>
+      </div>
       <label>Avisarme
         <select name="remind">
           <option value="-1">Sin aviso</option>
@@ -137,6 +156,7 @@
       <div id="viewer-body"></div>
       <div class="form-actions">
         <button id="btn-ics" class="btn" type="button">📲 Añadir a mi calendario</button>
+        <button id="btn-skip" class="btn" type="button" hidden>Saltar este día</button>
         <span class="spacer"></span>
         <button id="btn-edit" class="btn" type="button">Editar</button>
         <button id="btn-close-view" class="btn primary" type="button">Cerrar</button>

@@ -192,6 +192,18 @@ textarea { resize: vertical; }
   border: none; background: rgba(0, 0, 0, .6); color: #fff; cursor: pointer; line-height: 1;
 }
 
+.repeat-block { display: grid; gap: 10px; }
+.weekday-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.weekday-picker label { display: block; cursor: pointer; }
+.weekday-picker input { position: absolute; opacity: 0; pointer-events: none; }
+.weekday-picker span {
+  display: grid; place-items: center; height: 38px; border: 1px solid var(--line); border-radius: 10px;
+  color: var(--text); font-weight: 600;
+}
+.weekday-picker input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.weekday-picker input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.event .repeat { font-size: .8rem; color: var(--muted); }
+
 .form-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .spacer { flex: 1; }
 

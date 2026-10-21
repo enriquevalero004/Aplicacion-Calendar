@@ -4,6 +4,25 @@ const $ = (sel) => document.querySelector(sel);
 const DEFAULT_TIME = '09:00'; // hora usada para avisar de planes sin hora
 const SETTINGS_KEY = 'mi-calendario-ajustes';
 
+const CATEGORIES = {
+  general: { emoji: '📅', label: 'General' },
+  estudios: { emoji: '📚', label: 'Carrera y estudios' },
+  amigos: { emoji: '🎉', label: 'Amigos' },
+  gym: { emoji: '💪', label: 'Gym' },
+  pareja: { emoji: '💖', label: 'Plan con mi novia' },
+};
+
+// Los planes antiguos solo tenían la marca "couple".
+function categoryOf(ev) {
+  return CATEGORIES[ev.category] ? ev.category : ev.couple ? 'pareja' : 'general';
+}
+
+// Emoji delante del título (los planes generales van sin emoji).
+function prefix(ev) {
+  const cat = categoryOf(ev);
+  return cat === 'general' ? '' : CATEGORIES[cat].emoji + ' ';
+}
+
 const state = {
   events: [],
   month: startOfMonth(new Date()),
@@ -102,12 +121,13 @@ function renderCalendar() {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const iso = toISODate(d);
     const dayEvents = state.events.filter((e) => e.date === iso);
-    const hasCouple = dayEvents.some((e) => e.couple);
-    const normal = dayEvents.filter((e) => !e.couple).length;
+    const cats = new Set(dayEvents.map(categoryOf));
+    const special = Object.keys(CATEGORIES).filter((c) => c !== 'general' && cats.has(c));
 
     const marks = el('span', { className: 'marks' });
-    if (hasCouple) marks.append('💖');
-    for (let n = 0; n < Math.min(normal, 3); n++) marks.append(el('span', { className: 'dot' }));
+    // Un emoji por tipo de plan del día (máx. 3); los generales se ven como un punto.
+    for (const c of special.slice(0, 3)) marks.append(CATEGORIES[c].emoji);
+    if (cats.has('general') && special.length < 3) marks.append(el('span', { className: 'dot' }));
 
     const btn = el('button', { type: 'button', className: 'day' }, [
       el('span', { className: 'num', textContent: d.getDate() }),
@@ -128,10 +148,10 @@ function renderCalendar() {
 }
 
 function eventItem(ev) {
-  const li = el('li', { className: 'event' + (ev.couple ? ' couple' : '') }, [
+  const li = el('li', { className: `event cat-${categoryOf(ev)}` }, [
     el('span', { className: 'time', textContent: ev.time || 'Todo el día' }),
     el('div', { className: 'info' }, [
-      el('div', { className: 'title', textContent: (ev.couple ? '💖 ' : '') + ev.title }),
+      el('div', { className: 'title', textContent: prefix(ev) + ev.title }),
       ev.description ? el('div', { className: 'desc', textContent: ev.description }) : null,
     ]),
     ev.photos?.length ? el('img', { src: ev.photos[0], alt: '' }) : null,
@@ -153,11 +173,11 @@ function renderDay() {
 
 function renderCouple() {
   const box = $('#couple-list');
-  const plans = sortEvents(state.events.filter((e) => e.couple)).reverse();
+  const plans = sortEvents(state.events.filter((e) => categoryOf(e) === 'pareja')).reverse();
   if (!plans.length) {
     box.replaceChildren(el('div', {
       className: 'empty',
-      textContent: 'Todavía no hay planes en pareja. Al crear un plan, marca “💖 Plan con mi novia”.',
+      textContent: 'Todavía no hay planes en pareja. Al crear un plan, elige “💖 Con mi novia”.',
     }));
     return;
   }
@@ -197,7 +217,9 @@ function openViewer(ev) {
   $('#viewer-body').replaceChildren(
     el('h3', { textContent: ev.title }),
     el('div', { className: 'meta', textContent: `${fmtDayFull.format(parseISODate(ev.date))} · ${ev.time || 'todo el día'} · ${remindText}` }),
-    ev.couple ? el('span', { className: 'badge', textContent: '💖 Plan con mi novia' }) : null,
+    categoryOf(ev) !== 'general'
+      ? el('span', { className: 'badge', textContent: `${CATEGORIES[categoryOf(ev)].emoji} ${CATEGORIES[categoryOf(ev)].label}` })
+      : null,
     ev.description ? el('p', { className: 'text', textContent: ev.description }) : null,
     ev.photos?.length
       ? el('div', { className: 'gallery' }, ev.photos.map((src) => el('img', { src, alt: '' })))
@@ -218,7 +240,7 @@ function openForm(ev = null) {
   f.time.value = ev?.time || '';
   f.remind.value = String(ev?.remind ?? 30);
   f.description.value = ev?.description || '';
-  f.couple.checked = !!ev?.couple;
+  f.category.value = ev ? categoryOf(ev) : 'general';
   state.draftPhotos = [...(ev?.photos || [])];
   $('#btn-delete').hidden = !ev;
   renderDraftPhotos();
@@ -266,7 +288,8 @@ async function saveForm() {
     time: f.time.value,
     remind: Number(f.remind.value),
     description: f.description.value.trim(),
-    couple: f.couple.checked,
+    category: f.category.value,
+    couple: f.category.value === 'pareja',
     photos: state.draftPhotos,
     createdAt: prev?.createdAt || Date.now(),
   };
@@ -348,7 +371,7 @@ async function checkReminders() {
     // Si el plan ya pasó hace rato, no molestamos con un aviso viejo.
     const tooLate = now - start > 60 * 60000;
     const sent = !tooLate && await notify(
-      (ev.couple ? '💖 ' : '📅 ') + ev.title,
+      CATEGORIES[categoryOf(ev)].emoji + ' ' + ev.title,
       describeWhen(ev, now) + (ev.description ? ` · ${ev.description}` : ''),
       ev.id,
     );
@@ -365,7 +388,7 @@ async function dailySummary() {
   if (!settings.summary || settings.lastSummary === today) return;
   const items = eventsOn(today);
   if (!items.length) return;
-  const body = items.map((e) => `${e.time || '·'} ${e.couple ? '💖 ' : ''}${e.title}`).join('\n');
+  const body = items.map((e) => `${e.time || '·'} ${prefix(e)}${e.title}`).join('\n');
   const title = items.length === 1 ? 'Hoy tienes 1 plan' : `Hoy tienes ${items.length} planes`;
   if (await notify(title, body, 'resumen-' + today)) {
     settings.lastSummary = today;
@@ -398,7 +421,7 @@ function downloadICS(ev) {
     next.setDate(next.getDate() + 1);
     lines.push(`DTSTART;VALUE=DATE:${ev.date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${toISODate(next).replace(/-/g, '')}`);
   }
-  lines.push(`SUMMARY:${icsEscape((ev.couple ? '💖 ' : '') + ev.title)}`);
+  lines.push(`SUMMARY:${icsEscape(prefix(ev) + ev.title)}`);
   if (ev.description) lines.push(`DESCRIPTION:${icsEscape(ev.description)}`);
   if (ev.remind >= 0) {
     lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEscape(ev.title)}`, `TRIGGER:-PT${ev.remind}M`, 'END:VALARM');

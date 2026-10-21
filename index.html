@@ -105,10 +105,14 @@
         <textarea name="description" rows="3" placeholder="Detalles, dirección, qué llevar…"></textarea>
       </label>
 
-      <label class="couple-toggle">
-        <input type="checkbox" name="couple">
-        <span>💖 Plan con mi novia</span>
-      </label>
+      <fieldset class="categories">
+        <legend>Tipo de plan</legend>
+        <label class="cat"><input type="radio" name="category" value="general" checked><span>📅 General</span></label>
+        <label class="cat"><input type="radio" name="category" value="estudios"><span>📚 Carrera y estudios</span></label>
+        <label class="cat"><input type="radio" name="category" value="amigos"><span>🎉 Amigos</span></label>
+        <label class="cat"><input type="radio" name="category" value="gym"><span>💪 Gym</span></label>
+        <label class="cat"><input type="radio" name="category" value="pareja"><span>💖 Con mi novia</span></label>
+      </fieldset>
 
       <div id="photos-block">
         <div class="photos-head">

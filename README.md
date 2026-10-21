@@ -5,7 +5,9 @@ App sencilla para organizar los días, instalable en el móvil (PWA).
 - 📅 **Calendario mensual** con los planes de cada día.
 - 🔔 **Avisos**: notificación antes de cada plan (a la hora, 10 min, 30 min, 1 h, 2 h o 1 día antes)
   y un resumen de los planes del día al abrir la app.
-- 💖 **Planes en pareja**: marca un plan como “Plan con mi novia”, añade fotos y una descripción.
+- 🏷️ **Tipos de plan**: 📅 General, 📚 Carrera y estudios, 🎉 Amigos, 💪 Gym y 💖 Con mi novia.
+  Cada tipo tiene su color y su emoji en el calendario.
+- 💖 **Planes en pareja**: elige el tipo “Con mi novia”, añade fotos y una descripción.
   Todos aparecen en la pestaña **Nuestros planes**, como un álbum de recuerdos.
 - 📲 **Añadir a mi calendario**: descarga el plan como `.ics` para guardarlo en el calendario
   del móvil con su alarma (avisa aunque la app esté cerrada).

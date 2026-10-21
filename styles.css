@@ -7,7 +7,7 @@
   --line: #dadce0;
   --line-soft: #ececec;
   --accent: #2c4363;
-  --accent-soft: #e3e9f2;
+  --accent-soft: #d5dfee;
   --on-accent: #ffffff;
   --now: #ea4335;
   --danger: #c5221f;
@@ -29,7 +29,7 @@
     --line: #3c4043;
     --line-soft: #2f3033;
     --accent: #8ab4f8;
-    --accent-soft: #2b3a52;
+    --accent-soft: #34476a;
     --on-accent: #10203a;
     --now: #f28b82;
     --danger: #f28b82;
@@ -205,7 +205,10 @@ svg { display: block; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; line-height: 1.35; min-height: 20px;
 }
 .chip-item.academic, .block.academic { background: var(--academic-bg); color: var(--academic-text); }
-.chip-item.done, .block.done, .agenda-item.done { opacity: .55; text-decoration: line-through; }
+.chip-item.done, .block.done, .agenda-item.done {
+  background: var(--surface); color: var(--muted); border: 1px solid var(--c); text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted) 70%, transparent);
+}
 .narrow .chip-item { font-size: .64rem; padding: 1px 3px; }
 
 /* ---------- Vista mes ---------- */

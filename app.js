@@ -341,8 +341,14 @@ function renderCalendar() {
   else renderAgenda();
 }
 
+// Lo hecho se pinta en blanco con el borde del color, para que siga leyéndose bien.
 function itemStyle(item) {
-  return item.kind === 'academic' ? {} : colored(item.color);
+  if (item.kind === 'academic') return {};
+  return item.done ? { '--c': item.color } : colored(item.color);
+}
+
+function itemTitle(item, text) {
+  return item.done ? `✓ ${text}` : text;
 }
 
 function chip(item, { withTime = true } = {}) {
@@ -350,7 +356,7 @@ function chip(item, { withTime = true } = {}) {
   const b = el('button', {
     type: 'button',
     className: `chip-item ${item.kind}${item.done ? ' done' : ''}`,
-    textContent: (withTime && time ? `${time} ` : '') + (item.short || item.title),
+    textContent: itemTitle(item, (withTime && time ? `${time} ` : '') + (item.short || item.title)),
     title: item.title,
     style: itemStyle(item),
   });
@@ -404,7 +410,7 @@ function renderTimeGrid(days) {
           width: `calc(${100 / it.cols}% - 3px)`,
         },
       }, [
-        el('div', { className: 't', textContent: narrow ? it.short : it.title }),
+        el('div', { className: 't', textContent: itemTitle(it, narrow ? it.short : it.title) }),
         small ? null : el('div', { className: 's', textContent: `${timeText(it.start)} – ${timeText(it.end)}` }),
         small || !it.sub ? null : el('div', { className: 's room', textContent: it.sub }),
       ]);
@@ -475,7 +481,7 @@ function agendaItem(item) {
     className: `agenda-item ${item.kind}${item.done ? ' done' : ''}`,
     style: itemStyle(item),
   }, [
-    el('div', { className: 't', textContent: item.title }),
+    el('div', { className: 't', textContent: itemTitle(item, item.title) }),
     item.kind === 'academic' ? null : el('div', { className: 's', textContent: [time, sub].filter(Boolean).join(' · ') }),
   ]);
   b.addEventListener('click', () => openItem(item));

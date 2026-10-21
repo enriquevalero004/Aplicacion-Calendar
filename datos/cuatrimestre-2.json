@@ -1,0 +1,80 @@
+{
+  "titulacion": "Máster Universitario en Ciencia y Tecnología Nuclear (1_MUNC)",
+  "cuatrimestre": 2,
+  "fechas": { "inicio": null, "fin": null, "vacaciones": [] },
+  "asignaturas": [
+    {
+      "codigo": "53001587",
+      "nombre": "Tecnologías Avanzadas en Reactores Nucleares",
+      "color": "#f4b6b6",
+      "aula": null,
+      "profesores": ["Jiménez Varas, Gonzalo", "Castro González, Emilio"],
+      "clases": [{ "dia": "jueves", "inicio": "12:30", "fin": "14:20" }]
+    },
+    {
+      "codigo": "53001588",
+      "nombre": "Seguridad Energética",
+      "color": "#f7f0a8",
+      "aula": null,
+      "profesores": ["Río Redondo, Emma del", "Cabellos de Francisco, Óscar Luis", "Cotelo Ferreiro, Manuel"],
+      "clases": [{ "dia": "lunes", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001589",
+      "nombre": "Fusión Nuclear",
+      "color": "#a9e6a0",
+      "aula": null,
+      "profesores": ["Cotelo Ferreiro, Manuel", "Oliva Gonzalo, Eduardo", "Velarde Mayol, Pedro"],
+      "clases": [{ "dia": "lunes", "inicio": "17:30", "fin": "19:20" }]
+    },
+    {
+      "codigo": "53001590",
+      "nombre": "Neutrónica",
+      "color": "#a8eef5",
+      "aula": null,
+      "profesores": ["García Herranz, Nuria", "Cabellos de Francisco, Óscar Luis", "García Fernández, Gonzalo Felipe"],
+      "clases": [{ "dia": "miércoles", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001591",
+      "nombre": "Separación y Transmutación de Residuos Radiactivos",
+      "color": "#c2c2f2",
+      "aula": null,
+      "profesores": ["Río Redondo, Emma del", "Abánades Velasco, Alberto"],
+      "clases": [{ "dia": "lunes", "inicio": "12:30", "fin": "14:20" }]
+    },
+    {
+      "codigo": "53001595",
+      "nombre": "Diseño de Reactores Nucleares",
+      "color": "#f5c2f2",
+      "aula": null,
+      "profesores": ["García Herranz, Nuria", "Castro González, Emilio", "García Fernández, Gonzalo Felipe"],
+      "clases": [{ "dia": "jueves", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001599",
+      "nombre": "Fiabilidad y Análisis del Riesgo",
+      "color": "#f7c99a",
+      "aula": null,
+      "profesores": ["Cuervo Gómez, Diana", "Queral Salazar, José César"],
+      "clases": [{ "dia": "martes", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001600",
+      "nombre": "Seguridad Nuclear: Análisis de Accidentes Nucleares",
+      "color": "#f08080",
+      "aula": null,
+      "profesores": ["Jiménez Varas, Gonzalo", "Queral Salazar, José César", "Fernández Cosials, Kevin"],
+      "clases": [{ "dia": "miércoles", "inicio": "17:30", "fin": "19:20" }]
+    },
+    {
+      "codigo": "53001601",
+      "nombre": "Gestión de Residuos Radiactivos",
+      "color": "#ece87a",
+      "aula": null,
+      "profesores": ["García Fernández, Gonzalo Felipe", "Elorza Tenreiro, Francisco Javier", "Fernández Cosials, Kevin"],
+      "clases": [{ "dia": "martes", "inicio": "17:30", "fin": "21:20" }]
+    }
+  ],
+  "tareas": []
+}

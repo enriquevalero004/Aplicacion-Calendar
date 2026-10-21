@@ -8,7 +8,7 @@
       "nombre": "Física Nuclear",
       "color": "#f4a6a6",
       "aula": "Fdez. del Amo",
-      "profesores": ["Rivera de Mena, Antonio Juan", "Olan Gonzalo, Eduardo", "Cotelo Ferreiro, Manuel", "Velarde Mayol, Pedro"],
+      "profesores": ["Rivera de Mena, Antonio Juan", "Oliva Gonzalo, Eduardo", "Cotelo Ferreiro, Manuel", "Velarde Mayol, Pedro"],
       "clases": [{ "dia": "lunes", "inicio": "17:30", "fin": "19:20" }]
     },
     {

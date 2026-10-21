@@ -943,6 +943,9 @@ function openEventForm(ev = null, preset = {}) {
   f.endDate.value = ev?.endDate || f.date.value;
   formStartDate = f.date.value;
   f.end.value = ev?.end ?? preset.end ?? '';
+  // Los eventos nuevos empiezan con horas (como en Google Calendar); los guardados sin hora son de día entero.
+  f.allDay.checked = ev ? !ev.time : !!preset.allDay;
+  updateAllDayUI();
   f.place.value = ev?.place || '';
   f.remind.value = String(ev?.remind ?? 30);
   f.description.value = ev?.description || '';
@@ -958,6 +961,19 @@ function openEventForm(ev = null, preset = {}) {
   $('#btn-delete-event').hidden = !ev;
   $('#dlg-event').returnValue = '';
   $('#dlg-event').showModal();
+}
+
+// Al pasar de "todo el día" a horas, se propone la próxima hora en punto y una hora de duración.
+function updateAllDayUI() {
+  const f = $('#form-event');
+  $('#when-grid').classList.toggle('all-day', f.allDay.checked);
+  if (f.allDay.checked || f.time.value) return;
+  const now = new Date();
+  const start = Math.min((now.getHours() + 1) * 60, 23 * 60);
+  f.time.value = timeText(start);
+  if (!f.end.value || (f.endDate.value <= f.date.value && f.end.value <= f.time.value)) {
+    f.end.value = timeText(Math.min(start + 60, 23 * 60 + 59));
+  }
 }
 
 function updateRepeatUI() {
@@ -1010,7 +1026,7 @@ function resizeImage(file, max = 1280, quality = 0.82) {
 async function saveEvent() {
   const f = $('#form-event');
   const prev = editingEvent;
-  const time = f.time.value;
+  const time = f.allDay.checked ? '' : f.time.value;
   const endDate = f.endDate.value > f.date.value ? f.endDate.value : '';
   const ev = {
     ...(prev || {}),
@@ -1020,7 +1036,7 @@ async function saveEvent() {
     endDate,
     time,
     // Si termina otro día vale cualquier hora; si es el mismo día, tiene que ser después.
-    end: endDate ? f.end.value : time && f.end.value > time ? f.end.value : '',
+    end: !time ? '' : endDate ? f.end.value : f.end.value > time ? f.end.value : '',
     place: f.place.value.trim(),
     remind: Number(f.remind.value),
     description: f.description.value.trim(),
@@ -1564,6 +1580,7 @@ function bindUI() {
   // Formulario de evento
   const fe = $('#form-event');
   fe.repeat.addEventListener('change', updateRepeatUI);
+  fe.allDay.addEventListener('change', updateAllDayUI);
   // Al mover el inicio, el final se mueve con él (como en Google Calendar).
   fe.date.addEventListener('change', () => {
     if (formStartDate && fe.date.value && fe.endDate.value) {

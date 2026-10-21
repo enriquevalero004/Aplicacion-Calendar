@@ -488,3 +488,7 @@ textarea { resize: vertical; }
 .tg-allday > .chip-item { margin: 0 2px; width: auto; min-width: 0; }
 .chip-item.span-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
 .chip-item.span-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+
+/* Todo el día: sin horas */
+.when-grid.all-day { grid-template-columns: minmax(0, 1fr); }
+.when-grid.all-day input[type="time"] { display: none; }

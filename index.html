@@ -154,7 +154,12 @@
     <form id="form-event" method="dialog">
       <h3 id="event-form-title">Nuevo evento</h3>
       <input name="title" class="input-title" required maxlength="120" placeholder="Añade un título" aria-label="Título">
-      <div class="when-grid">
+      <label class="switch">
+        <input type="checkbox" name="allDay">
+        <span class="track"></span>
+        <span class="switch-text"><b>Todo el día</b></span>
+      </label>
+      <div id="when-grid" class="when-grid">
         <span class="when-label">Empieza</span>
         <input name="date" type="date" required aria-label="Día en que empieza">
         <input name="time" type="time" aria-label="Hora a la que empieza">
@@ -162,7 +167,7 @@
         <input name="endDate" type="date" aria-label="Día en que termina">
         <input name="end" type="time" aria-label="Hora a la que termina">
       </div>
-      <p class="muted small hint">Sin hora, el evento dura el día entero. Para varios días, cambia el día en que termina.</p>
+      <p class="muted small hint">Para un evento de varios días, cambia el día en que termina.</p>
       <label id="repeat-wrap">Repetir
         <select name="repeat">
           <option value="none">No se repite</option>

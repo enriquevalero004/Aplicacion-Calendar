@@ -537,8 +537,9 @@ function itemsOn(iso) {
       const total = daysBetween(ev.date, ev.endDate) + 1;
       items.push({
         key: `e-${ev.id}-${iso}`, kind: 'event', date: iso, ref: ev, start: null, end: null, multi: true,
-        title: ev.title, short: ev.title,
-        sub: [`Día ${daysBetween(ev.date, iso) + 1} de ${total}`, spanText(ev), ev.place].filter(Boolean).join(' · '),
+        title: ev.title,
+        short: iso === ev.date && ev.time ? `${ev.time} ${ev.title}` : ev.title,
+        sub: [`Día ${daysBetween(ev.date, iso) + 1} de ${total}`, ev.time ? '' : 'Todo el día', spanText(ev), ev.place].filter(Boolean).join(' · '),
         color: CATEGORIES[categoryOf(ev)].color,
       });
       continue;

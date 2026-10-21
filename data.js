@@ -371,6 +371,26 @@ const SEED_TASKS = [
     "time": "23:59",
     "notes": "",
     "remind": 1440
+  },
+  {
+    "id": "t-f28ec3317950",
+    "subjectId": "s-53001598",
+    "type": "presentacion",
+    "title": "Presentación",
+    "date": "2026-12-16",
+    "time": "18:30",
+    "notes": "Presentación en clase (dijiste «6:30»; la clase es de 17:30 a 19:20, así que se ha puesto 18:30). Fecha de entrega del material: por confirmar.",
+    "remind": 2880
+  },
+  {
+    "id": "t-0dbaba6bf2aa",
+    "subjectId": "s-53001606",
+    "type": "trabajo",
+    "title": "Trabajo",
+    "date": "2026-11-23",
+    "time": "",
+    "notes": "",
+    "remind": 1440
   }
 ];
 

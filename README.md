@@ -1,29 +1,40 @@
 # Mi Calendario
 
-App sencilla para organizar los días, instalable en el móvil (PWA).
+Calendario personal al estilo Google Calendar, instalable en el móvil (PWA), con las clases,
+entregas y exámenes del Máster en Ciencia y Tecnología Nuclear (UPM, curso 2026-27).
 
-- **Calendario mensual** con los planes de cada día.
-- **Avisos**: notificación antes de cada plan (a la hora, 10 min, 30 min, 1 h, 2 h o 1 día antes)
-  y un resumen de los planes del día al abrir la app.
-- **Tipos de plan**: General, Estudios, Amigos, Gym y Pareja, cada uno con su color.
-- **Planes que se repiten**: cada semana en los días que elijas (p. ej. gym L-X-V) o todos los días,
-  con fecha de fin opcional. Puedes saltarte un día suelto sin borrar el resto.
-- **Destacados**: marca cualquier plan como destacado, añade fotos y una descripción, y aparecerá
-  en la pestaña **Destacados** (con filtro por tipo).
-- **Añadir al calendario del móvil**: descarga el plan como `.ics` para guardarlo en el calendario
-  del móvil con su alarma (avisa aunque la app esté cerrada).
-- Todo se guarda en el propio dispositivo. Desde **Ajustes** puedes exportar/importar una copia.
+**App:** <https://enriquevalero004.github.io/Aplicacion-Calendar/>
 
-## Cómo usarla en el móvil
+## Qué hace
 
-1. En GitHub: **Settings → Pages → Build and deployment**, elige *Deploy from a branch*,
-   rama `main` y carpeta `/ (root)`. En un par de minutos estará en
-   `https://<tu-usuario>.github.io/aplicacion-calendar/`.
-2. Abre esa dirección en el móvil:
-   - **Android (Chrome)**: menú ⋮ → *Añadir a pantalla de inicio* / *Instalar app*.
-   - **iPhone (Safari)**: botón Compartir → *Añadir a pantalla de inicio*.
-     (En iPhone las notificaciones solo funcionan con la app instalada así.)
-3. Abre la app desde el icono y pulsa **🔔 Activar avisos**.
+- **Vistas** de agenda, día, 3 días, semana y mes. Se desliza para cambiar de semana o mes y,
+  tocando un hueco, se crea un evento a esa hora.
+- **Clases automáticas** de las 16 asignaturas (cada una con su color), según el calendario académico:
+  sin clases en festivos, vacaciones y días sin docencia, y con los cambios de horario
+  (días que se sigue el horario del lunes). Se puede quitar una clase suelta.
+- **Asignaturas**: ficha con horario, próximas clases, profesores y sus entregas.
+  Se pueden editar, cambiar de color o añadir nuevas.
+- **Entregas y exámenes**: exámenes, trabajos, entregables, ejercicios, prácticas y presentaciones,
+  con fecha, aviso y nota. Se marcan como hechas.
+- **Filtros**: ver solo universidad, clases, exámenes, entregas o planes, por asignatura o por tipo.
+- **Planes personales** (General, Estudios, Amigos, Gym, Pareja), con repetición semanal
+  y **Destacados** con fotos y descripción.
+- **Avisos**: antes de cada plan o entrega, antes de cada clase (opcional) y resumen del día.
+- **Añadir al calendario del móvil**: descarga un `.ics` para que el calendario del teléfono
+  avise aunque la app esté cerrada.
+- Todo se guarda en el dispositivo. Desde **Ajustes** se puede exportar/importar una copia.
+
+## Datos del curso
+
+Los datos de partida están en `datos/` (asignaturas de cada cuatrimestre, calendario académico y
+entregas conocidas). Tras modificarlos, se regenera `data.js` con:
+
+```sh
+python3 datos/generar.py
+```
+
+La app añade las asignaturas y entregas nuevas sin duplicar las que ya tiene ni recuperar las que
+se hayan borrado a propósito.
 
 ## Probarla en el ordenador
 
@@ -35,6 +46,6 @@ y abre <http://localhost:8000>.
 
 ## Sobre los avisos
 
-Es una app web sin servidor, así que los avisos salen mientras la app está abierta o en
-segundo plano. Si el sistema la cierra del todo, usa **Añadir al calendario del móvil** en los planes
-importantes para que el calendario del móvil te avise sí o sí.
+Es una app web sin servidor: los avisos salen mientras la app está abierta o en segundo plano.
+Para lo importante, usa **Añadir al calendario del móvil**. En iPhone, los avisos solo funcionan
+con la app instalada en la pantalla de inicio.

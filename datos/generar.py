@@ -59,7 +59,7 @@ for t in load('tareas.json'):
         'id': 't-' + hashlib.sha1(key.encode()).hexdigest()[:12],
         'subjectId': subject_id(t['asignatura']), 'type': t['tipo'], 'title': t['titulo'],
         'date': t['fecha'], 'time': t.get('hora') or '', 'notes': t.get('notas') or '',
-        'remind': 1440 if t['tipo'] != 'examen' else 2880,
+        'remind': 2880 if t['tipo'] in ('examen', 'presentacion') else 1440,
     })
 
 cal = load('calendario-academico-2026-27.json')

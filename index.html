@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#2c4363">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)">
   <title>Mi Calendario</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -11,85 +12,152 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1>Mi Calendario</h1>
-    <button id="btn-notif" class="chip" type="button">Activar avisos</button>
-  </header>
-
-  <nav class="tabs">
-    <button class="tab active" data-view="calendar" type="button">Calendario</button>
-    <button class="tab" data-view="highlights" type="button">Destacados</button>
-    <button class="tab" data-view="settings" type="button">Ajustes</button>
-  </nav>
-
-  <main>
-    <!-- Calendario -->
-    <section id="view-calendar" class="view">
-      <div class="month-nav">
-        <button id="prev-month" class="icon-btn" type="button" aria-label="Mes anterior">‹</button>
-        <h2 id="month-label"></h2>
-        <button id="next-month" class="icon-btn" type="button" aria-label="Mes siguiente">›</button>
+  <div class="app">
+    <!-- Menú lateral -->
+    <aside id="drawer" class="drawer" aria-label="Menú">
+      <div class="drawer-head">
+        <img src="icon.svg" alt="" width="32" height="32">
+        <span>Mi Calendario</span>
       </div>
-      <div class="weekdays">
-        <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
-      </div>
-      <div id="grid" class="grid"></div>
+      <div id="mini-cal" class="mini-cal"></div>
+      <nav class="drawer-nav">
+        <button class="nav-item" data-view="agenda" type="button">Agenda</button>
+        <button class="nav-item" data-view="day" type="button">Día</button>
+        <button class="nav-item" data-view="3day" type="button">3 días</button>
+        <button class="nav-item" data-view="week" type="button">Semana</button>
+        <button class="nav-item" data-view="month" type="button">Mes</button>
+        <hr>
+        <button class="nav-item" data-screen="tasks" type="button">Entregas y exámenes <span id="badge-tasks" class="count" hidden></span></button>
+        <button class="nav-item" data-screen="subjects" type="button">Asignaturas</button>
+        <button class="nav-item" data-screen="highlights" type="button">Destacados</button>
+        <button class="nav-item" data-screen="settings" type="button">Ajustes</button>
+        <hr>
+        <div class="nav-label">Ver en el calendario</div>
+        <div id="drawer-presets" class="drawer-presets"></div>
+        <button id="btn-drawer-filter" class="nav-item" type="button">Más filtros…</button>
+      </nav>
+    </aside>
+    <div id="scrim" class="scrim" hidden></div>
 
-      <div class="day-panel">
-        <div class="day-head">
-          <h3 id="day-label"></h3>
-          <button id="btn-today" class="chip" type="button">Hoy</button>
+    <div class="main">
+      <header class="appbar">
+        <button id="btn-menu" class="icon-btn" type="button" aria-label="Menú"></button>
+        <button id="btn-back" class="icon-btn" type="button" aria-label="Volver" hidden></button>
+        <h1 id="appbar-title"></h1>
+        <div id="cal-actions" class="cal-actions">
+          <button id="btn-prev" class="icon-btn wide-only" type="button" aria-label="Anterior"></button>
+          <button id="btn-next" class="icon-btn wide-only" type="button" aria-label="Siguiente"></button>
+          <button id="btn-filter" class="icon-btn" type="button" aria-label="Filtrar"></button>
+          <button id="btn-today" class="today-btn" type="button" aria-label="Ir a hoy"></button>
+          <select id="view-select" class="view-select" aria-label="Vista">
+            <option value="agenda">Agenda</option>
+            <option value="day">Día</option>
+            <option value="3day">3 días</option>
+            <option value="week">Semana</option>
+            <option value="month">Mes</option>
+          </select>
         </div>
-        <ul id="day-events" class="events"></ul>
-      </div>
-    </section>
+        <button id="btn-notif" class="icon-btn" type="button" aria-label="Avisos"></button>
+      </header>
 
-    <!-- Planes destacados -->
-    <section id="view-highlights" class="view" hidden>
-      <p class="muted small">Los planes que has destacado, del más reciente al más antiguo.</p>
-      <div id="highlight-filters" class="filters"></div>
-      <div id="highlight-list" class="highlight-list"></div>
-    </section>
+      <main id="content">
+        <section id="screen-calendar" class="screen">
+          <div id="filter-bar" class="filter-bar" hidden>
+            <span id="filter-text"></span>
+            <button id="btn-filter-clear" class="btn ghost" type="button">Ver todo</button>
+          </div>
+          <div id="cal" class="cal"></div>
+        </section>
 
-    <!-- Ajustes -->
-    <section id="view-settings" class="view" hidden>
-      <div class="card">
-        <h3>Avisos</h3>
-        <label class="row">
-          <span>Resumen del día al abrir la app por primera vez</span>
-          <input type="checkbox" id="set-summary">
-        </label>
-        <button id="btn-test-notif" class="btn" type="button">Probar notificación</button>
-        <p class="muted small">
-          Los avisos llegan mientras la app está abierta o en segundo plano. Si quieres
-          que te avise seguro aunque el móvil la cierre, usa el botón
-          <b>“Añadir al calendario del móvil”</b> de cada plan: se guarda en el calendario del móvil
-          con su alarma.
-        </p>
-      </div>
-      <div class="card">
-        <h3>Copia de seguridad</h3>
-        <p class="muted small">Todo se guarda solo en este dispositivo. Haz copias de vez en cuando.</p>
-        <div class="row-btns">
-          <button id="btn-export" class="btn" type="button">Exportar</button>
-          <label class="btn">Importar<input id="inp-import" type="file" accept="application/json" hidden></label>
-        </div>
-      </div>
-    </section>
-  </main>
+        <section id="screen-tasks" class="screen page" hidden>
+          <div class="filters">
+            <div class="segmented" role="group" aria-label="Estado">
+              <button type="button" data-status="pending">Pendientes</button>
+              <button type="button" data-status="done">Hechas</button>
+              <button type="button" data-status="all">Todas</button>
+            </div>
+            <select id="task-subject-filter" class="select-sm" aria-label="Asignatura"></select>
+          </div>
+          <div id="task-list"></div>
+        </section>
 
-  <button id="fab" class="fab" type="button" aria-label="Nuevo plan">+</button>
+        <section id="screen-subjects" class="screen page" hidden>
+          <div id="subject-list"></div>
+          <button id="btn-new-subject" class="btn" type="button">Añadir asignatura</button>
+        </section>
 
-  <!-- Formulario de plan -->
+        <section id="screen-subject" class="screen page" hidden>
+          <div id="subject-detail"></div>
+        </section>
+
+        <section id="screen-highlights" class="screen page" hidden>
+          <p class="muted small">Los planes que has destacado, del más reciente al más antiguo.</p>
+          <div id="highlight-filters" class="chips"></div>
+          <div id="highlight-list" class="highlight-list"></div>
+        </section>
+
+        <section id="screen-settings" class="screen page" hidden>
+          <div class="card">
+            <h3>Avisos</h3>
+            <label class="row">
+              <span>Resumen del día al abrir la app por primera vez</span>
+              <input type="checkbox" id="set-summary">
+            </label>
+            <label class="row">
+              <span>Avisar antes de cada clase</span>
+              <select id="set-class-remind" class="select-sm">
+                <option value="-1">No</option>
+                <option value="5">5 min antes</option>
+                <option value="10">10 min antes</option>
+                <option value="15">15 min antes</option>
+                <option value="30">30 min antes</option>
+              </select>
+            </label>
+            <div class="row-btns">
+              <button id="btn-enable-notif" class="btn" type="button">Activar avisos</button>
+              <button id="btn-test-notif" class="btn" type="button">Probar notificación</button>
+            </div>
+            <p class="muted small">
+              Los avisos llegan mientras la app está abierta o en segundo plano. Para que te avise seguro
+              aunque el móvil la cierre, abre un plan o una entrega y pulsa <b>“Añadir al calendario del móvil”</b>.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Clases</h3>
+            <label class="row">
+              <span>Hay clase en las semanas de PEC de grado</span>
+              <input type="checkbox" id="set-pec">
+            </label>
+            <p class="muted small">Curso 2026-27 · Máster en Ciencia y Tecnología Nuclear (UPM).</p>
+          </div>
+          <div class="card">
+            <h3>Copia de seguridad</h3>
+            <p class="muted small">Todo se guarda solo en este dispositivo. Haz copias de vez en cuando.</p>
+            <div class="row-btns">
+              <button id="btn-export" class="btn" type="button">Exportar</button>
+              <label class="btn">Importar<input id="inp-import" type="file" accept="application/json" hidden></label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <button id="fab" class="fab" type="button" aria-label="Crear"></button>
+  <div id="fab-menu" class="fab-menu" hidden>
+    <button type="button" data-new="task">Entrega o examen</button>
+    <button type="button" data-new="event">Evento</button>
+  </div>
+
+  <!-- Evento personal -->
   <dialog id="dlg-event">
     <form id="form-event" method="dialog">
-      <h3 id="form-title">Nuevo plan</h3>
-      <label>Título
-        <input name="title" required maxlength="120" placeholder="Cena, médico, gimnasio…">
-      </label>
-      <div class="two">
+      <h3 id="event-form-title">Nuevo evento</h3>
+      <input name="title" class="input-title" required maxlength="120" placeholder="Añade un título" aria-label="Título">
+      <div class="three">
         <label>Día <input name="date" type="date" required></label>
-        <label>Hora <input name="time" type="time"></label>
+        <label>Empieza <input name="time" type="time"></label>
+        <label>Termina <input name="end" type="time"></label>
       </div>
       <label>Repetir
         <select name="repeat">
@@ -110,6 +178,7 @@
         </div>
         <label>Hasta (opcional) <input name="until" type="date"></label>
       </div>
+      <label>Lugar <input name="place" maxlength="120" placeholder="Opcional"></label>
       <label>Avisarme
         <select name="remind">
           <option value="-1">Sin aviso</option>
@@ -122,18 +191,12 @@
         </select>
       </label>
       <label>Descripción
-        <textarea name="description" rows="3" placeholder="Detalles, dirección, qué llevar…"></textarea>
+        <textarea name="description" rows="2" placeholder="Detalles, qué llevar…"></textarea>
       </label>
-
-      <fieldset class="categories">
-        <legend>Tipo de plan</legend>
-        <label class="cat"><input type="radio" name="category" value="general" checked><span><i class="dot cat-general"></i>General</span></label>
-        <label class="cat"><input type="radio" name="category" value="estudios"><span><i class="dot cat-estudios"></i>Estudios</span></label>
-        <label class="cat"><input type="radio" name="category" value="amigos"><span><i class="dot cat-amigos"></i>Amigos</span></label>
-        <label class="cat"><input type="radio" name="category" value="gym"><span><i class="dot cat-gym"></i>Gym</span></label>
-        <label class="cat"><input type="radio" name="category" value="pareja"><span><i class="dot cat-pareja"></i>Pareja</span></label>
+      <fieldset class="chips-field">
+        <legend>Tipo</legend>
+        <div id="event-categories" class="chips"></div>
       </fieldset>
-
       <label class="switch">
         <input type="checkbox" name="highlight">
         <span class="track"></span>
@@ -142,17 +205,15 @@
           <small>Aparecerá en Destacados con sus fotos y descripción</small>
         </span>
       </label>
-
-      <div id="photos-block">
+      <div>
         <div class="photos-head">
           <span>Fotos</span>
           <label class="chip">Añadir fotos<input id="inp-photos" type="file" accept="image/*" multiple hidden></label>
         </div>
         <div id="photo-preview" class="photo-grid"></div>
       </div>
-
       <div class="form-actions">
-        <button id="btn-delete" class="btn danger" type="button" hidden>Borrar</button>
+        <button id="btn-delete-event" class="btn danger" type="button">Borrar</button>
         <span class="spacer"></span>
         <button class="btn ghost" value="cancel" formnovalidate type="submit">Cancelar</button>
         <button class="btn primary" value="save" type="submit">Guardar</button>
@@ -160,23 +221,130 @@
     </form>
   </dialog>
 
-  <!-- Visor de plan -->
-  <dialog id="dlg-view">
-    <div class="viewer">
-      <div id="viewer-body"></div>
-      <div class="form-actions">
-        <button id="btn-ics" class="btn" type="button">Añadir al calendario del móvil</button>
-        <button id="btn-skip" class="btn" type="button" hidden>Saltar este día</button>
-        <span class="spacer"></span>
-        <button id="btn-edit" class="btn" type="button">Editar</button>
-        <button id="btn-close-view" class="btn primary" type="button">Cerrar</button>
+  <!-- Entrega / examen -->
+  <dialog id="dlg-task">
+    <form id="form-task" method="dialog">
+      <h3 id="task-form-title">Nueva entrega</h3>
+      <label>Asignatura <select name="subject" required></select></label>
+      <fieldset class="chips-field">
+        <legend>Tipo</legend>
+        <div id="task-types" class="chips"></div>
+      </fieldset>
+      <input name="title" class="input-title" maxlength="160" placeholder="Título (p. ej. Tarea 2 - Informe)" aria-label="Título">
+      <div class="three">
+        <label>Fecha <input name="date" type="date" required></label>
+        <label><span id="task-time-label">Hora límite</span> <input name="time" type="time"></label>
+        <label id="task-end-wrap">Termina <input name="end" type="time"></label>
       </div>
+      <label id="task-place-wrap">Aula / lugar <input name="place" maxlength="120" placeholder="Opcional"></label>
+      <label>Avisarme
+        <select name="remind">
+          <option value="-1">Sin aviso</option>
+          <option value="0">A la hora</option>
+          <option value="60">1 hora antes</option>
+          <option value="1440">1 día antes</option>
+          <option value="2880">2 días antes</option>
+          <option value="10080">1 semana antes</option>
+        </select>
+      </label>
+      <label>Notas <textarea name="notes" rows="3" placeholder="Enunciado, enlace, qué entra…"></textarea></label>
+      <div id="task-done-wrap" class="two">
+        <label class="check"><input type="checkbox" name="done"><span>Hecha</span></label>
+        <label>Nota <input name="grade" maxlength="20" placeholder="Opcional"></label>
+      </div>
+      <div class="form-actions">
+        <button id="btn-delete-task" class="btn danger" type="button">Borrar</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" value="cancel" formnovalidate type="submit">Cancelar</button>
+        <button class="btn primary" value="save" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Asignatura -->
+  <dialog id="dlg-subject">
+    <form id="form-subject" method="dialog">
+      <h3 id="subject-form-title">Asignatura</h3>
+      <input name="name" class="input-title" required maxlength="120" placeholder="Nombre" aria-label="Nombre">
+      <div class="two">
+        <label>Nombre corto <input name="short" maxlength="24" placeholder="Para la vista semana"></label>
+        <label>Código <input name="code" maxlength="24"></label>
+      </div>
+      <div class="two">
+        <label>Cuatrimestre
+          <select name="semester">
+            <option value="1">1.º</option>
+            <option value="2">2.º</option>
+          </select>
+        </label>
+        <label>Aula <input name="room" maxlength="60"></label>
+      </div>
+      <fieldset class="chips-field">
+        <legend>Color</legend>
+        <div id="subject-colors" class="swatches"></div>
+      </fieldset>
+      <fieldset class="chips-field">
+        <legend>Horario de clases</legend>
+        <div id="schedule-rows" class="schedule-rows"></div>
+        <button id="btn-add-slot" class="chip" type="button">Añadir clase</button>
+      </fieldset>
+      <label>Profesores <textarea name="teachers" rows="3" placeholder="Uno por línea"></textarea></label>
+      <div class="form-actions">
+        <button id="btn-delete-subject" class="btn danger" type="button">Borrar</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" value="cancel" formnovalidate type="submit">Cancelar</button>
+        <button class="btn primary" value="save" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Filtros del calendario -->
+  <dialog id="dlg-filter">
+    <div class="sheet">
+      <h3>Filtrar calendario</h3>
+      <div id="filter-presets" class="chips"></div>
+      <div class="filter-section">
+        <div class="filter-head"><span>Universidad</span></div>
+        <div id="filter-uni" class="chips"></div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-head">
+          <span>Asignaturas</span>
+          <span>
+            <button id="btn-subjects-all" class="link-btn" type="button">Todas</button>
+            <button id="btn-subjects-none" class="link-btn" type="button">Ninguna</button>
+          </span>
+        </div>
+        <div id="filter-subjects"></div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-head"><span>Planes</span></div>
+        <div id="filter-categories" class="chips"></div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-head"><span>Otros</span></div>
+        <div id="filter-other" class="chips"></div>
+      </div>
+      <div class="form-actions">
+        <span class="spacer"></span>
+        <button id="btn-filter-done" class="btn primary" type="button">Listo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Detalle de cualquier elemento -->
+  <dialog id="dlg-sheet">
+    <div class="sheet">
+      <div id="sheet-body"></div>
+      <div id="sheet-actions" class="form-actions"></div>
     </div>
   </dialog>
 
   <div id="toast" class="toast" hidden></div>
 
   <script src="db.js"></script>
+  <script src="data.js"></script>
+  <script src="core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -22,5 +22,21 @@
     "fecha": "2027-01-12",
     "hora": "23:59",
     "notas": ""
+  },
+  {
+    "asignatura": "53001598",
+    "tipo": "presentacion",
+    "titulo": "Presentación",
+    "fecha": "2026-12-16",
+    "hora": "18:30",
+    "notas": "Presentación en clase (dijiste «6:30»; la clase es de 17:30 a 19:20, así que se ha puesto 18:30). Fecha de entrega del material: por confirmar."
+  },
+  {
+    "asignatura": "53001606",
+    "tipo": "trabajo",
+    "titulo": "Trabajo",
+    "fecha": "2026-11-23",
+    "hora": "",
+    "notas": ""
   }
 ]

@@ -637,9 +637,9 @@ function openTaskSheet(t) {
   const subject = subjectOf(t);
   showSheet({
     color: taskColor(t),
-    title: taskLabel(t),
+    title: taskFullTitle(t),
     lines: [
-      [TASK_TYPES[t.type]?.label, subject?.name].filter(Boolean).join(' · '),
+      taskFullTitle(t).includes(subject?.name) ? '' : subject?.name,
       `${taskWhen(t)} · ${t.done ? 'Hecha' : relativeDay(t.date)}`,
       t.place ? `Lugar: ${t.place}` : '',
       t.done ? '' : remindText(t.remind),

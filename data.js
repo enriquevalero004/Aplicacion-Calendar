@@ -349,6 +349,8 @@ const SEED_TASKS = [
     "title": "Trabajo nanoHUB (primera parte)",
     "date": "2026-11-08",
     "time": "23:59",
+    "end": "",
+    "place": "",
     "notes": "En Moodle aparece como «Evaluation». Trabajo de nanoHUB de la primera parte de la asignatura.",
     "remind": 1440
   },
@@ -359,6 +361,8 @@ const SEED_TASKS = [
     "title": "Tarea 1 - Desarrollo de código Monte Carlo",
     "date": "2026-11-15",
     "time": "23:00",
+    "end": "",
+    "place": "",
     "notes": "",
     "remind": 1440
   },
@@ -369,6 +373,8 @@ const SEED_TASKS = [
     "title": "Exercise 1 - Thermal response and atomistic defects",
     "date": "2027-01-12",
     "time": "23:59",
+    "end": "",
+    "place": "",
     "notes": "",
     "remind": 1440
   },
@@ -379,6 +385,8 @@ const SEED_TASKS = [
     "title": "Presentación",
     "date": "2026-12-16",
     "time": "18:30",
+    "end": "",
+    "place": "",
     "notes": "Presentación en clase (dijiste «6:30»; la clase es de 17:30 a 19:20, así que se ha puesto 18:30). Fecha de entrega del material: por confirmar.",
     "remind": 2880
   },
@@ -389,8 +397,22 @@ const SEED_TASKS = [
     "title": "Trabajo",
     "date": "2026-11-23",
     "time": "",
+    "end": "",
+    "place": "",
     "notes": "",
     "remind": 1440
+  },
+  {
+    "id": "t-c41053c674e2",
+    "subjectId": "s-53001586",
+    "type": "examen",
+    "title": "",
+    "date": "2026-11-27",
+    "time": "15:30",
+    "end": "",
+    "place": "",
+    "notes": "Entra hasta el tema 2.1 incluido.\nHora por confirmar (15:30). Duración provisional: 2 horas.",
+    "remind": 2880
   }
 ];
 

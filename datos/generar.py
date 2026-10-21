@@ -58,7 +58,8 @@ for t in load('tareas.json'):
     tasks.append({
         'id': 't-' + hashlib.sha1(key.encode()).hexdigest()[:12],
         'subjectId': subject_id(t['asignatura']), 'type': t['tipo'], 'title': t['titulo'],
-        'date': t['fecha'], 'time': t.get('hora') or '', 'notes': t.get('notas') or '',
+        'date': t['fecha'], 'time': t.get('hora') or '', 'end': t.get('fin') or '',
+        'place': t.get('lugar') or '', 'notes': t.get('notas') or '',
         'remind': 2880 if t['tipo'] in ('examen', 'presentacion') else 1440,
     })
 

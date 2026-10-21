@@ -1,0 +1,64 @@
+{
+  "titulacion": "Máster Universitario en Ciencia y Tecnología Nuclear (1_MUNC)",
+  "cuatrimestre": 1,
+  "fechas": { "inicio": null, "fin": null, "vacaciones": [] },
+  "asignaturas": [
+    {
+      "codigo": "53001586",
+      "nombre": "Física Nuclear",
+      "color": "#f4a6a6",
+      "aula": "Fdez. del Amo",
+      "profesores": ["Rivera de Mena, Antonio Juan", "Olan Gonzalo, Eduardo", "Cotelo Ferreiro, Manuel", "Velarde Mayol, Pedro"],
+      "clases": [{ "dia": "lunes", "inicio": "17:30", "fin": "19:20" }]
+    },
+    {
+      "codigo": "53001592",
+      "nombre": "Termohidráulica Nuclear",
+      "color": "#f2e27a",
+      "aula": "Fdez. del Amo",
+      "profesores": ["Cuervo Gómez, Diana", "Queral Salazar, José César", "Jiménez Varas, Gonzalo"],
+      "clases": [{ "dia": "martes", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001593",
+      "nombre": "Métodos Numéricos Avanzados",
+      "color": "#9fdc8f",
+      "aula": "Fdez. del Amo",
+      "profesores": ["Velarde Mayol, Pedro", "Cotelo Ferreiro, Manuel", "Kohanoff, Jorge José"],
+      "clases": [{ "dia": "lunes", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001594-S1",
+      "nombre": "Materiales bajo Irradiación",
+      "color": "#8fe3ef",
+      "aula": "13",
+      "profesores": ["González Arrabal, Raquel", "Kohanoff, Jorge José", "Peña Rodríguez, Ovidio Yordanis", "Garoz Gómez, David", "Rivera de Mena, Antonio Juan"],
+      "clases": [{ "dia": "lunes", "inicio": "12:30", "fin": "14:20" }]
+    },
+    {
+      "codigo": "53001596",
+      "nombre": "Teoría del Transporte de Partículas y Radiación",
+      "color": "#b3b3f2",
+      "aula": "Fdez. del Amo",
+      "profesores": ["Peña Rodríguez, Ovidio Yordanis", "Rivera de Mena, Antonio Juan", "González Arrabal, Raquel", "Kohanoff, Jorge José"],
+      "clases": [{ "dia": "miércoles", "inicio": "15:30", "fin": "17:20" }]
+    },
+    {
+      "codigo": "53001598",
+      "nombre": "Fundamentos de los Nanosistemas",
+      "color": "#f2b3ef",
+      "aula": "Fdez. del Amo",
+      "profesores": ["González Arrabal, Raquel", "Peña Rodríguez, Ovidio Yordanis", "Kohanoff, Jorge José"],
+      "clases": [{ "dia": "miércoles", "inicio": "17:30", "fin": "19:20" }]
+    },
+    {
+      "codigo": "53001606",
+      "nombre": "Tecnología de Radiaciones",
+      "color": "#f7c08a",
+      "aula": "Fdez. del Amo",
+      "profesores": ["Río Redondo, Emma del", "González Arrabal, Raquel", "Rivera de Mena, Antonio Juan"],
+      "clases": [{ "dia": "jueves", "inicio": "17:30", "fin": "19:20" }]
+    }
+  ],
+  "tareas": []
+}

@@ -118,9 +118,34 @@
               <button id="btn-test-notif" class="btn" type="button">Probar notificación</button>
             </div>
             <p class="muted small">
-              Los avisos llegan mientras la app está abierta o en segundo plano. Para que te avise seguro
-              aunque el móvil la cierre, abre un plan o una entrega y pulsa <b>“Añadir al calendario del móvil”</b>.
+              Estos avisos solo llegan mientras la app está abierta o recién cerrada. Para que te avise
+              siempre, pásalo todo al calendario del móvil (abajo).
             </p>
+          </div>
+          <div class="card">
+            <h3>Avisos con la app cerrada</h3>
+            <p class="muted small">
+              Descarga un archivo con todo lo que queda de curso (exámenes, entregas, planes y, si quieres,
+              las clases) con sus alarmas, e impórtalo en Google Calendar o en el calendario del iPhone.
+              Ese calendario te avisará aunque esta app esté cerrada.
+            </p>
+            <label class="row">
+              <span>Incluir las clases</span>
+              <input type="checkbox" id="exp-classes" checked>
+            </label>
+            <div class="row-btns">
+              <button id="btn-export-ics" class="btn primary" type="button">Exportar todo al calendario</button>
+            </div>
+            <details class="howto">
+              <summary>Cómo importarlo</summary>
+              <ol class="small">
+                <li><b>iPhone:</b> abre el archivo descargado y pulsa “Añadir todo”. Mejor en un calendario nuevo llamado “Máster”.</li>
+                <li><b>Android / Google Calendar:</b> en el ordenador entra en calendar.google.com → ⚙️ Configuración →
+                  Importar y exportar → elige el archivo y un calendario (mejor uno nuevo llamado “Máster”).
+                  En el móvil te avisará la app de Google Calendar.</li>
+                <li>Si cambias algo en esta app, lo más limpio es borrar el calendario “Máster”, crearlo de nuevo y volver a importar.</li>
+              </ol>
+            </details>
           </div>
           <div class="card">
             <h3>Clases</h3>

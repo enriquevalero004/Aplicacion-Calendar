@@ -1,5 +1,5 @@
 // Service worker: permite instalar la app, usarla sin conexión y mostrar notificaciones.
-const CACHE = 'mi-calendario-v14';
+const CACHE = 'mi-calendario-v15';
 const FILES = ['./', 'index.html', 'styles.css', 'db.js', 'data.js', 'core.js', 'app.js', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', (e) => {

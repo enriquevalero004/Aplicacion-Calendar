@@ -1367,23 +1367,21 @@ function eventToICS(series) {
 
 function taskToICS(t) {
   const subject = subjectOf(t);
-  const timed = TASK_TYPES[t.type]?.timed && t.time;
   return {
     uid: t.id,
     title: taskFullTitle(t),
     date: t.date,
     time: t.time,
-    // Igual que en el calendario: sin hora de fin, un examen ocupa 2 horas.
-    end: timed ? t.end || timeText(Math.min(minutes(t.time) + 120, 23 * 60 + 59)) : '',
+    end: TASK_TYPES[t.type]?.timed ? t.end : '',
     description: [subject?.name, t.notes].filter(Boolean).join('\n'),
     place: t.place,
     remind: t.remind,
   };
 }
 
-function icsEvent(item) {
+function downloadICS(item) {
   const lines = [
-    'BEGIN:VEVENT',
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mi Calendario//ES', 'BEGIN:VEVENT',
     `UID:${item.uid}@mi-calendario`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
   ];
@@ -1408,47 +1406,8 @@ function icsEvent(item) {
   if (item.remind >= 0) {
     lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEscape(item.title)}`, `TRIGGER:-PT${item.remind}M`, 'END:VALARM');
   }
-  lines.push('END:VEVENT');
-  return lines;
-}
-
-function icsCalendar(items, name) {
-  return [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mi Calendario//ES', 'CALSCALE:GREGORIAN',
-    name ? `X-WR-CALNAME:${icsEscape(name)}` : null,
-    ...items.flatMap(icsEvent),
-    'END:VCALENDAR',
-  ].filter(Boolean).join('\r\n');
-}
-
-function downloadICS(item) {
-  download(`${item.title.replace(/[^\w\- ]+/g, '').trim() || 'evento'}.ics`, icsCalendar([item]), 'text/calendar');
-}
-
-// Todo lo que queda de curso en un solo archivo, para que el calendario del móvil avise con la app cerrada.
-function exportAllICS(withClasses) {
-  const today = todayISO();
-  const items = [];
-  if (withClasses) {
-    const remind = Number(state.settings.classRemind);
-    for (let d = today; d <= ACADEMIC.semesters['2'].end; d = addDays(d, 1)) {
-      for (const c of classesOn(d)) {
-        items.push({
-          uid: `c-${c.subject.id}-${d}-${c.slot.start.replace(':', '')}`,
-          title: c.subject.name, date: d, time: c.slot.start, end: c.slot.end,
-          place: roomText(c.slot.room || c.subject.room), description: 'Clase', remind,
-        });
-      }
-    }
-  }
-  for (const t of state.tasks) {
-    if (!t.done && !isSuperseded(t) && t.date >= today) items.push(taskToICS(t));
-  }
-  for (const ev of state.events) {
-    if (ev.repeat ? !ev.repeat.until || ev.repeat.until >= today : (ev.endDate || ev.date) >= today) items.push(eventToICS(ev));
-  }
-  download(`mi-calendario-${today}.ics`, icsCalendar(items, 'Mi Calendario'), 'text/calendar');
-  toast(`Exportados ${items.length} elementos. Ahora impórtalo en tu calendario.`);
+  lines.push('END:VEVENT', 'END:VCALENDAR');
+  download(`${item.title.replace(/[^\w\- ]+/g, '').trim() || 'evento'}.ics`, lines.join('\r\n'), 'text/calendar');
 }
 
 function download(name, content, type) {
@@ -1711,7 +1670,6 @@ function bindUI() {
     if (!(await notify('Mi Calendario', 'Así te llegarán los avisos.', 'prueba'))) toast('Primero activa los avisos');
   });
   $('#btn-export').addEventListener('click', exportBackup);
-  $('#btn-export-ics').addEventListener('click', () => exportAllICS($('#exp-classes').checked));
   $('#inp-import').addEventListener('change', (e) => {
     if (e.target.files[0]) importBackup(e.target.files[0]);
     e.target.value = '';
